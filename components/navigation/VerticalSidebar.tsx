@@ -71,7 +71,7 @@ export const VerticalSidebar: React.FC<VerticalSidebarProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5 font-black text-base tracking-tight text-foreground">
-              <span>MindVault</span>
+              <span>Progress</span>
               <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded border border-indigo-500/30">
                 AI
               </span>

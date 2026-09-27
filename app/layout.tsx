@@ -3,8 +3,8 @@ import './globals.css';
 import { SkiperGooeyFilterProvider } from '@/components/ui/skiper-ui/skiper64';
 
 export const metadata: Metadata = {
-  title: 'MindVault AI — Goal-to-Action OS & Digital Memory Vault',
-  description: 'Production-ready full-stack learning operating system with Google Gemini 3.8 Flash, pgvector memory, and adaptive AI mentoring.',
+  title: 'Progress — Goal-to-Action OS & Digital Memory Vault',
+  description: 'Production-ready full-stack learning operating system with Google Gemini AI, pgvector memory, and adaptive mentoring.',
 };
 
 export default function RootLayout({

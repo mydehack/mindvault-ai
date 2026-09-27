@@ -14,7 +14,7 @@ interface LoginViewProps {
 }
 
 const AVATARS = [
-  "https://api.dicebear.com/7.x/bottts/svg?seed=MindVault",
+  "https://api.dicebear.com/7.x/bottts/svg?seed=Progress",
   "https://api.dicebear.com/7.x/bottts/svg?seed=PardhuAI",
   "https://api.dicebear.com/7.x/bottts/svg?seed=Architect",
   "https://api.dicebear.com/7.x/bottts/svg?seed=CyberPunk",
@@ -27,7 +27,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   onThemeChange
 }) => {
   const [fullName, setFullName] = useState("Pardhu");
-  const [email, setEmail] = useState("pardhu@mindvault.ai");
+  const [email, setEmail] = useState("pardhu@progress.ai");
   const [role, setRole] = useState("Full-Stack AI & Systems Architect");
   const [learningStyle, setLearningStyle] = useState("Socratic Deep-Dive");
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
@@ -37,7 +37,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     const profile: UserProfile = {
       id: "usr-" + Date.now(),
       fullName: fullName.trim() || "Pardhu",
-      email: email.trim() || "pardhu@mindvault.ai",
+      email: email.trim() || "pardhu@progress.ai",
       role: role.trim() || "Full-Stack AI Architect",
       avatarUrl: selectedAvatar,
       learningStyle,
@@ -54,7 +54,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     const demoProfile: UserProfile = {
       id: "usr-demo",
       fullName: "Pardhu",
-      email: "pardhu@mindvault.ai",
+      email: "pardhu@progress.ai",
       role: "Lead Systems Architect & AI Engineer",
       avatarUrl: AVATARS[1],
       learningStyle: "Socratic Deep-Dive & Systems Invariants",
@@ -95,7 +95,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-3xl font-black tracking-tight text-foreground">
-              MindVault
+              Progress
             </span>
             <span className="rounded-lg bg-indigo-500/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-400 border border-indigo-500/30">
               AI OS
@@ -133,7 +133,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. pardhu@mindvault.ai"
+              placeholder="e.g. pardhu@progress.ai"
               className="w-full rounded-xl border border-vault-border bg-slate-900/60 dark:bg-slate-900/60 px-4 py-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
           </div>
@@ -196,7 +196,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               type="submit"
               className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 py-3.5 px-4 font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
-              <span>Initialize MindVault Profile</span>
+              <span>Initialize Progress Profile</span>
               <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
             </button>
 

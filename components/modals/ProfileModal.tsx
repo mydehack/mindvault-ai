@@ -48,7 +48,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const element = document.createElement("a");
     const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
     element.href = URL.createObjectURL(blob);
-    element.download = `mindvault-backup-${user.fullName.toLowerCase()}-${Date.now()}.json`;
+    element.download = `progress-backup-${user.fullName.toLowerCase()}-${Date.now()}.json`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);

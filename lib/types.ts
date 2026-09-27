@@ -62,6 +62,22 @@ export interface StorageFile {
   content: string;
   sizeFormatted: string;
   createdAt: string;
+  matchScore?: number;
+  rationale?: string;
+  keySnippet?: string;
+}
+
+export interface StorageFileMatch {
+  id: string;
+  matchScore: number;
+  rationale: string;
+  keySnippet: string;
+}
+
+export interface AISearchResult {
+  aiSynthesis: string;
+  rankedFiles: StorageFileMatch[];
+  suggestedQueries: string[];
 }
 
 export interface DailyQuest {

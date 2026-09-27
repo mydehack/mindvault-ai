@@ -72,7 +72,7 @@ export async function generateRoadmapAI(
 ): Promise<Goal> {
   const bestVideo = resolveBestVideoCourse(goalTitle);
 
-  const prompt = `You are an elite curriculum architect and AI tutor for MindVault AI.
+  const prompt = `You are an elite curriculum architect and AI tutor for Progress.
 Break down this learning goal into a world-class, structured, actionable milestone roadmap:
 Goal: "${goalTitle}"
 Duration: "${targetDuration}"
@@ -477,7 +477,7 @@ export async function generateVideoNotesAI(
       break;
   }
 
-  const prompt = `You are the MindVault AI Note Generating Assistant powered by Gemini 3.8 Flash.
+  const prompt = `You are the Progress AI Note Generating Assistant powered by Gemini 3.8 Flash.
 Topic / Video Title: "${videoTitle}"
 ${context ? `Additional Lecture Context: ${context}` : ''}
 
@@ -537,7 +537,7 @@ export async function generateMentorResponseAI(
   conversationHistory: { role: string; content: string }[] = []
 ): Promise<string> {
   const personaPrompts: Record<PersonaType, string> = {
-    socratic: `You are the Socratic Mentor in MindVault AI. You NEVER give outright answers immediately. Instead, guide the user through first principles, asking probing questions that lead them to deduce the answer themselves. Encourage rigorous mental modeling.`,
+    socratic: `You are the Socratic Mentor in Progress. You NEVER give outright answers immediately. Instead, guide the user through first principles, asking probing questions that lead them to deduce the answer themselves. Encourage rigorous mental modeling.`,
     architect: `You are a Senior Staff Infrastructure Architect at Google. You care deeply about production latency (p99), memory allocations, cache invalidation, single-points-of-failure, scalability limits, and architectural trade-offs. Provide concise, uncompromising engineering wisdom.`,
     tutor: `You are a warm, encouraging, brilliant Technical Tutor. Use vivid real-world analogies, visual metaphors, and step-by-step breakdowns to make intimidating computer science concepts feel intuitive and exciting.`,
     drillmaster: `You are the Exam Drillmaster. You test the user with rapid-fire questions, edge-case traps, and timed scenarios to prepare them for FAANG / elite system design interviews. Score their answers strictly and give no unearned praise.`
@@ -556,5 +556,132 @@ export async function generateMentorResponseAI(
     return await callGemini('gemini-3.8-flash', prompt, systemPrompt);
   } catch (err) {
     return `That's a vital question in systems engineering. Let's look at the underlying primitive: what happens at the memory and I/O boundary when this operation executes? Consider the trade-off between throughput and latency.`;
+  }
+}
+
+// 7. AI-Powered Storage Vault Semantic Search & Synthesis (Gemini 3.8 Flash)
+export async function searchStorageWithAI(
+  query: string,
+  files: any[]
+): Promise<any> {
+  if (!files || files.length === 0) {
+    return {
+      aiSynthesis: "No stored documents found in your Progress Storage Vault.",
+      rankedFiles: [],
+      suggestedQueries: []
+    };
+  }
+
+  const fileSummaries = files.map((f) => ({
+    id: f.id,
+    filename: f.filename,
+    category: f.category,
+    tags: f.tags,
+    snippet: f.content.slice(0, 800)
+  }));
+
+  const prompt = `You are the Progress AI Storage Vault Intelligence engine powered by Gemini 3.8 Flash.
+The user is querying their personal storage vault containing learning notes, summaries, roadmaps, and code.
+
+User Query: "${query}"
+
+User Stored Files:
+${JSON.stringify(fileSummaries, null, 2)}
+
+Instructions:
+1. Synthesize a direct, high-value AI Answer (aiSynthesis) that summarizes the answer to the query using the content from the matching files. Write in clean markdown with key terms bolded.
+2. Rank the files based on semantic relevance to the query. For every relevant file, provide:
+   - "id": string matching the file id
+   - "matchScore": integer from 50 to 100
+   - "rationale": 1 crisp sentence explaining why this file answers the user's search
+   - "keySnippet": a 1-2 sentence excerpt or summary of the most relevant content from this file
+3. Suggest 3 smart follow-up exploratory questions ("suggestedQueries") the user could ask next.
+
+Respond ONLY with valid JSON in this exact structure:
+{
+  "aiSynthesis": "Direct answer to the query synthesized from the files...",
+  "rankedFiles": [
+    {
+      "id": "file-id",
+      "matchScore": 95,
+      "rationale": "Directly explains...",
+      "keySnippet": "Key excerpt..."
+    }
+  ],
+  "suggestedQueries": ["Question 1", "Question 2", "Question 3"]
+}`;
+
+  try {
+    const text = await callGemini(
+      'gemini-3.8-flash',
+      prompt,
+      'You are a semantic search and knowledge synthesis agent for Progress. Respond strictly in valid JSON.',
+      true
+    );
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      aiSynthesis: parsed.aiSynthesis || `Found matching knowledge in your Progress Storage Vault for "${query}".`,
+      rankedFiles: parsed.rankedFiles || [],
+      suggestedQueries: parsed.suggestedQueries || []
+    };
+  } catch (err) {
+    console.warn('AI Storage search fallback for query:', query);
+    const qLower = query.toLowerCase();
+    const ranked = files
+      .map(f => {
+        let score = 50;
+        const matchesName = f.filename.toLowerCase().includes(qLower);
+        const matchesContent = f.content.toLowerCase().includes(qLower);
+        const matchesTag = f.tags?.some((t: string) => t.toLowerCase().includes(qLower));
+
+        if (matchesName && matchesContent) score = 95;
+        else if (matchesContent) score = 88;
+        else if (matchesName || matchesTag) score = 80;
+        else score = 60;
+
+        return {
+          id: f.id,
+          matchScore: score,
+          rationale: `Contains matching concepts related to "${query}" in ${f.category} documentation.`,
+          keySnippet: f.content.slice(0, 160) + '...'
+        };
+      })
+      .sort((a, b) => b.matchScore - a.matchScore);
+
+    return {
+      aiSynthesis: `Found relevant documents in your Progress Vault matching "${query}". Check the ranked files and mental models below.`,
+      rankedFiles: ranked,
+      suggestedQueries: [
+        `How does this apply to production systems?`,
+        `What are the edge case failure modes?`,
+        `Show me code examples for this concept`
+      ]
+    };
+  }
+}
+
+// 8. Ask Questions Directly to a Document
+export async function askFileAI(
+  fileName: string,
+  fileContent: string,
+  question: string
+): Promise<string> {
+  const prompt = `You are the Progress AI Document Assistant.
+File Name: "${fileName}"
+File Content:
+\`\`\`
+${fileContent.slice(0, 4000)}
+\`\`\`
+
+User Question: "${question}"
+
+Provide a crisp, accurate, markdown-formatted answer grounded directly in the file content above. Highlight code syntax or architectural invariants if applicable.`;
+
+  try {
+    return await callGemini('gemini-3.8-flash', prompt, 'You are an expert technical assistant in Progress. Answer clearly.');
+  } catch (err) {
+    return `Based on **${fileName}**, this relates to resource invariants and implementation structure. Refer to the code blocks in the document.`;
   }
 }

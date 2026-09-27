@@ -20,7 +20,7 @@ export const DayNightToggle: React.FC<DayNightToggleProps> = ({
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("mindvault_theme") as ThemeMode | null;
+    const saved = (localStorage.getItem("progress_theme") || localStorage.getItem("mindvault_theme")) as ThemeMode | null;
     const initial = theme || saved || "dark";
     const darkActive = initial === "dark";
     setIsDark(darkActive);
@@ -35,7 +35,7 @@ export const DayNightToggle: React.FC<DayNightToggleProps> = ({
     const nextDark = !isDark;
     const nextTheme: ThemeMode = nextDark ? "dark" : "light";
     setIsDark(nextDark);
-    localStorage.setItem("mindvault_theme", nextTheme);
+    localStorage.setItem("progress_theme", nextTheme);
     if (nextDark) {
       document.documentElement.classList.add("dark");
     } else {

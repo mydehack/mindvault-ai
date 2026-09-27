@@ -1,4 +1,4 @@
-# 🧠 MindVault AI — Full-Stack Learning & Knowledge OS
+# 🚀 Progress — Full-Stack Learning & Knowledge OS
 
 > **Production-ready, full-stack, visually stunning learning ecosystem combining an AI Goal-to-Action Planner, an AI Digital Memory Vault, an Adaptive AI Mentor, and Real-Time Progress Tracking.**
 

@@ -202,7 +202,7 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
                 </>
               ) : (
                 <>
-                  <span>Generate Actionable Roadmap & Unlock MindVault</span>
+                  <span>Generate Actionable Roadmap & Unlock Progress</span>
                   <ArrowRight className="size-4 group-hover:translate-x-1.5 transition-transform" />
                 </>
               )}

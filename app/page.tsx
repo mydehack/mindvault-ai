@@ -50,7 +50,7 @@ const INITIAL_FILES: StorageFile[] = [
   }
 ];
 
-export default function MindVaultApp() {
+export default function ProgressApp() {
   // Theme State
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>("dark");
 
@@ -77,9 +77,9 @@ export default function MindVaultApp() {
 
   // Load persisted session
   useEffect(() => {
-    const savedUser = localStorage.getItem("mindvault_user");
-    const savedGoal = localStorage.getItem("mindvault_goal");
-    const savedTheme = (localStorage.getItem("mindvault_theme") as ThemeMode) || "dark";
+    const savedUser = localStorage.getItem("progress_user") || localStorage.getItem("mindvault_user");
+    const savedGoal = localStorage.getItem("progress_goal") || localStorage.getItem("mindvault_goal");
+    const savedTheme = ((localStorage.getItem("progress_theme") || localStorage.getItem("mindvault_theme")) as ThemeMode) || "dark";
 
     setCurrentTheme(savedTheme);
     if (savedTheme === "dark") {
@@ -106,16 +106,16 @@ export default function MindVaultApp() {
 
   const handleLogin = (profile: UserProfile) => {
     setUserProfile(profile);
-    localStorage.setItem("mindvault_user", JSON.stringify(profile));
+    localStorage.setItem("progress_user", JSON.stringify(profile));
   };
 
   const handleThemeChange = (newTheme: ThemeMode) => {
     setCurrentTheme(newTheme);
-    localStorage.setItem("mindvault_theme", newTheme);
+    localStorage.setItem("progress_theme", newTheme);
     if (userProfile) {
       const updated = { ...userProfile, themePreference: newTheme };
       setUserProfile(updated);
-      localStorage.setItem("mindvault_user", JSON.stringify(updated));
+      localStorage.setItem("progress_user", JSON.stringify(updated));
     }
   };
 
@@ -128,7 +128,7 @@ export default function MindVaultApp() {
         userProfile?.learningStyle || "Socratic Deep-Dive"
       );
       setCurrentGoal(goal);
-      localStorage.setItem("mindvault_goal", JSON.stringify(goal));
+      localStorage.setItem("progress_goal", JSON.stringify(goal));
       setActiveView("dashboard");
     } catch (err) {
       console.error("Goal creation error:", err);
@@ -141,6 +141,7 @@ export default function MindVaultApp() {
 
   const handleResetGoal = () => {
     setCurrentGoal(null);
+    localStorage.removeItem("progress_goal");
     localStorage.removeItem("mindvault_goal");
   };
 
@@ -161,7 +162,7 @@ export default function MindVaultApp() {
               if (userProfile) {
                 const updatedUser = { ...userProfile, totalXp: userProfile.totalXp + 25 };
                 setUserProfile(updatedUser);
-                localStorage.setItem("mindvault_user", JSON.stringify(updatedUser));
+                localStorage.setItem("progress_user", JSON.stringify(updatedUser));
               }
             }
             return { ...act, completed: nextVal };
@@ -192,7 +193,7 @@ export default function MindVaultApp() {
     };
 
     setCurrentGoal(updatedGoal);
-    localStorage.setItem("mindvault_goal", JSON.stringify(updatedGoal));
+    localStorage.setItem("progress_goal", JSON.stringify(updatedGoal));
 
     if (isCompleted) {
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
@@ -215,7 +216,7 @@ export default function MindVaultApp() {
         hoursStudied: parseFloat((userProfile.hoursStudied + 0.8).toFixed(1))
       };
       setUserProfile(updatedUser);
-      localStorage.setItem("mindvault_user", JSON.stringify(updatedUser));
+      localStorage.setItem("progress_user", JSON.stringify(updatedUser));
     }
 
     // 3. Auto-tick milestone tasks & mark video watched
@@ -250,7 +251,7 @@ export default function MindVaultApp() {
     };
 
     setCurrentGoal(updatedGoal);
-    localStorage.setItem("mindvault_goal", JSON.stringify(updatedGoal));
+    localStorage.setItem("progress_goal", JSON.stringify(updatedGoal));
 
     // Update active video study modal milestone
     const active = updatedMilestones.find((m) => m.id === milestoneId);
@@ -272,7 +273,7 @@ export default function MindVaultApp() {
         if (next && userProfile) {
           const updatedUser = { ...userProfile, totalXp: userProfile.totalXp + q.xpReward };
           setUserProfile(updatedUser);
-          localStorage.setItem("mindvault_user", JSON.stringify(updatedUser));
+          localStorage.setItem("progress_user", JSON.stringify(updatedUser));
         }
         return { ...q, isCompleted: next };
       }
