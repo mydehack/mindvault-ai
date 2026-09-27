@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Target, Sparkles, Clock, Zap, ArrowRight, Compass, Flame, ShieldAlert } from "lucide-react";
+import { Target, Sparkles, Clock, Zap, ArrowRight, Compass, Flame, ShieldAlert, Hourglass } from "lucide-react";
 import { UserProfile, ThemeMode } from "@/lib/types";
 import { DayNightToggle } from "@/components/ui/day-night-toggle";
 import { TextRoll } from "@/components/ui/skiper-ui/skiper58";
@@ -12,7 +12,7 @@ interface InitialGoalEntryProps {
   user: UserProfile;
   currentTheme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
-  onSubmitGoal: (goalTitle: string, duration: string, level: string) => Promise<void>;
+  onSubmitGoal: (goalTitle: string, duration: string, level: string, dailyCommitment?: string) => Promise<void>;
   onInstantCuratedLoad: () => void;
 }
 
@@ -25,6 +25,14 @@ const STARTER_CHIPS = [
 
 const DURATIONS = ["14 days", "21 days", "30 days", "6 weeks", "3 months"];
 
+const COMMITMENTS = [
+  { id: "30m", label: "30 mins / day", desc: "Casual micro-learning" },
+  { id: "1h", label: "1 hour / day", desc: "Steady progress" },
+  { id: "2h", label: "2 hours / day", desc: "Accelerated (Recommended)" },
+  { id: "3h", label: "3-4 hours / day", desc: "Deep immersion" },
+  { id: "5h", label: "5+ hours / day", desc: "Full-Time mastery" },
+];
+
 export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
   user,
   currentTheme,
@@ -35,6 +43,7 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
   const [goalTitle, setGoalTitle] = useState("");
   const [targetDuration, setTargetDuration] = useState("30 days");
   const [difficultyLevel, setDifficultyLevel] = useState("Intermediate");
+  const [dailyCommitment, setDailyCommitment] = useState("2 hours / day");
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +58,7 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
         spread: 70,
         origin: { y: 0.6 }
       });
-      await onSubmitGoal(goalTitle.trim(), targetDuration, difficultyLevel);
+      await onSubmitGoal(goalTitle.trim(), targetDuration, difficultyLevel, dailyCommitment);
     } finally {
       setIsGenerating(false);
     }
@@ -185,6 +194,39 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
                 <option value="Intermediate">Intermediate (Core Idioms & Concurrency)</option>
                 <option value="Advanced">Advanced (Kernel, Internals & Scale)</option>
               </select>
+            </div>
+          </div>
+
+          {/* Daily Time Commitment (How much time user can put) */}
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-2">
+              <div className="flex items-center gap-1.5">
+                <Hourglass className="size-3.5 text-cyan-400" />
+                <span>How much time can you put each day?</span>
+              </div>
+              <span className="text-[11px] font-bold text-cyan-400">
+                {dailyCommitment}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {COMMITMENTS.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setDailyCommitment(c.label)}
+                  className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
+                    dailyCommitment === c.label
+                      ? "border-cyan-500 bg-cyan-500/20 text-cyan-300 font-bold shadow-md shadow-cyan-500/10"
+                      : "border-vault-border bg-slate-900/40 text-foreground/70 hover:bg-slate-800/50 hover:text-foreground"
+                  }`}
+                >
+                  <span className="text-xs font-semibold">{c.label}</span>
+                  <span className="text-[10px] text-foreground/50 mt-0.5">{c.desc}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 text-[11px] text-foreground/50 flex items-center gap-1">
+              <span>💡 Progress will calibrate milestone scope to your daily <strong>{dailyCommitment}</strong> schedule.</span>
             </div>
           </div>
 

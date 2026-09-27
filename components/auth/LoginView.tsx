@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Brain, ArrowRight, ShieldCheck, User, Mail, Briefcase, Compass } from "lucide-react";
+import { Sparkles, Brain, ArrowRight, ShieldCheck, User, Mail, Briefcase, Compass, Clock } from "lucide-react";
 import { UserProfile, ThemeMode } from "@/lib/types";
 import { DayNightToggle } from "@/components/ui/day-night-toggle";
 import { TextRoll } from "@/components/ui/skiper-ui/skiper58";
@@ -25,6 +25,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [email, setEmail] = useState("pardhu@progress.ai");
   const [role, setRole] = useState("Full-Stack AI & Systems Architect");
   const [learningStyle, setLearningStyle] = useState("Socratic Deep-Dive");
+  const [dailyCommitment, setDailyCommitment] = useState("2 hours / day");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +37,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       role: role.trim() || "Full-Stack AI Architect",
       avatarUrl: getAutoAvatar(name),
       learningStyle,
+      dailyCommitment,
       currentStreak: 7,
       totalXp: 1850,
       hoursStudied: 42.5,
@@ -159,6 +161,23 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <option value="Hands-on Project Building">Hands-on Project Building</option>
               <option value="Staff Architect Tradeoffs">Staff Architect Tradeoffs & Latency</option>
               <option value="FAANG Exam Drill & Active Recall">FAANG Exam Drill & Active Recall</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1.5">
+              <Clock className="size-3.5 text-cyan-400" /> How much time can you put daily to learn?
+            </label>
+            <select
+              value={dailyCommitment}
+              onChange={(e) => setDailyCommitment(e.target.value)}
+              className="w-full rounded-xl border border-vault-border bg-slate-900/60 dark:bg-slate-900/60 px-4 py-3 text-sm text-foreground focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            >
+              <option value="30 mins / day">30 mins / day (Casual Micro-Learning)</option>
+              <option value="1 hour / day">1 hour / day (Steady & Consistent)</option>
+              <option value="2 hours / day">2 hours / day (Accelerated - Recommended)</option>
+              <option value="3-4 hours / day">3-4 hours / day (Deep Immersion)</option>
+              <option value="5+ hours / day">5+ hours / day (Full-Time Mastery)</option>
             </select>
           </div>
 

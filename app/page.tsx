@@ -119,13 +119,19 @@ export default function ProgressApp() {
     }
   };
 
-  const handleCreateGoal = async (goalTitle: string, duration: string, level: string) => {
+  const handleCreateGoal = async (
+    goalTitle: string,
+    duration: string,
+    level: string,
+    dailyCommitment: string = "2 hours / day"
+  ) => {
     try {
       const goal = await generateRoadmapAI(
         goalTitle,
         duration,
         level,
-        userProfile?.learningStyle || "Socratic Deep-Dive"
+        userProfile?.learningStyle || "Socratic Deep-Dive",
+        dailyCommitment
       );
       setCurrentGoal(goal);
       localStorage.setItem("progress_goal", JSON.stringify(goal));

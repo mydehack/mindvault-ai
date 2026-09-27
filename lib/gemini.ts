@@ -68,7 +68,8 @@ export async function generateRoadmapAI(
   goalTitle: string,
   targetDuration: string = '30 days',
   difficultyLevel: string = 'Intermediate',
-  learningStyle: string = 'Socratic Deep-Dive'
+  learningStyle: string = 'Socratic Deep-Dive',
+  dailyCommitment: string = '2 hours / day'
 ): Promise<Goal> {
   const bestVideo = resolveBestVideoCourse(goalTitle);
 
@@ -78,6 +79,8 @@ Goal: "${goalTitle}"
 Duration: "${targetDuration}"
 Skill Level: "${difficultyLevel}"
 Learning Style: "${learningStyle}"
+Daily Study Time Available: "${dailyCommitment}"
+Note: Calibrate the milestone action items, pace, and time estimates so they realistically align with the user's daily study commitment of ${dailyCommitment}.
 
 Return a valid JSON object matching this structure:
 {
@@ -137,6 +140,7 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
       targetDuration,
       difficultyLevel,
       learningStyle,
+      dailyCommitment,
       progressPercentage: 0,
       isCompleted: false,
       bestVideoTitle: bestVideo.title,
@@ -156,6 +160,7 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
       targetDuration,
       difficultyLevel,
       learningStyle,
+      dailyCommitment,
       progressPercentage: 0,
       isCompleted: false,
       bestVideoTitle: bestVideo.title,

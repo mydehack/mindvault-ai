@@ -53,6 +53,11 @@ export const GoalRoadmapView: React.FC<GoalRoadmapViewProps> = ({
                 <Clock className="size-3 text-cyan-400" />
                 {goal.targetDuration}
               </span>
+              {goal.dailyCommitment && (
+                <span className="rounded-full bg-cyan-500/15 border border-cyan-500/30 px-2.5 py-1 text-xs font-semibold text-cyan-300 flex items-center gap-1">
+                  <span>⏱️ {goal.dailyCommitment}</span>
+                </span>
+              )}
               <span className="rounded-full bg-slate-800/80 px-2.5 py-1 text-xs text-foreground/70">
                 {goal.difficultyLevel} Level
               </span>

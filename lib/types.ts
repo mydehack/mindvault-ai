@@ -7,6 +7,7 @@ export interface UserProfile {
   role: string;
   avatarUrl: string;
   learningStyle: string;
+  dailyCommitment?: string;
   currentStreak: number;
   totalXp: number;
   hoursStudied: number;
@@ -44,6 +45,7 @@ export interface Goal {
   targetDuration: string;
   difficultyLevel: string;
   learningStyle: string;
+  dailyCommitment?: string;
   progressPercentage: number;
   isCompleted: boolean;
   bestVideoTitle: string;
