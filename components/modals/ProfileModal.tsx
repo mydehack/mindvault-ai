@@ -14,7 +14,8 @@ import {
   Download,
   RotateCcw,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Sparkles
 } from "lucide-react";
 import { UserProfile, ThemeMode } from "@/lib/types";
 import { DayNightToggle } from "@/components/ui/day-night-toggle";
@@ -24,6 +25,7 @@ interface ProfileModalProps {
   onClose: () => void;
   user: UserProfile;
   onResetGoal: () => void;
+  onOpenTutorial?: () => void;
   currentTheme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
 }
@@ -33,6 +35,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onClose,
   user,
   onResetGoal,
+  onOpenTutorial,
   currentTheme,
   onThemeChange,
 }) => {
@@ -146,6 +149,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {/* Actions: Set New Target & Export Backup */}
           <div className="space-y-3 pt-2 border-t border-vault-border">
+            {onOpenTutorial && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenTutorial();
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 py-2.5 px-4 text-xs font-semibold text-indigo-300 hover:text-indigo-200 transition-all"
+              >
+                <Sparkles className="size-3.5 text-indigo-400" />
+                <span>Replay Feature Walkthrough Tour</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 onClose();

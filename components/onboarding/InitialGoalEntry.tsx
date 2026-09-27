@@ -14,6 +14,7 @@ interface InitialGoalEntryProps {
   onThemeChange: (theme: ThemeMode) => void;
   onSubmitGoal: (goalTitle: string, duration: string, level: string, dailyCommitment?: string) => Promise<void>;
   onInstantCuratedLoad: () => void;
+  onOpenTutorial?: () => void;
 }
 
 const STARTER_CHIPS = [
@@ -39,6 +40,7 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
   onThemeChange,
   onSubmitGoal,
   onInstantCuratedLoad,
+  onOpenTutorial,
 }) => {
   const [goalTitle, setGoalTitle] = useState("");
   const [targetDuration, setTargetDuration] = useState("30 days");
@@ -85,7 +87,20 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
             <div className="text-[11px] text-foreground/50">{user.role}</div>
           </div>
         </div>
-        <DayNightToggle theme={currentTheme} onThemeChange={onThemeChange} />
+        <div className="flex items-center gap-2.5">
+          {onOpenTutorial && (
+            <button
+              type="button"
+              onClick={onOpenTutorial}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              title="Open Interactive Tutorial Tour"
+            >
+              <Sparkles className="size-3.5 text-indigo-400" />
+              <span>Tutorial Tour</span>
+            </button>
+          )}
+          <DayNightToggle theme={currentTheme} onThemeChange={onThemeChange} />
+        </div>
       </div>
 
       {/* Centered Goal Card */}

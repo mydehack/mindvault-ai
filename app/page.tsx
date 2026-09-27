@@ -16,6 +16,7 @@ import { CalendarModal } from "@/components/modals/CalendarModal";
 import { ProfileModal } from "@/components/modals/ProfileModal";
 import { VideoStudyModal } from "@/components/modals/VideoStudyModal";
 import { PostGoalAssessmentModal } from "@/components/modals/PostGoalAssessmentModal";
+import { TutorialModal } from "@/components/modals/TutorialModal";
 import { generateRoadmapAI } from "@/lib/gemini";
 import confetti from "canvas-confetti";
 
@@ -69,6 +70,7 @@ export default function ProgressApp() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [videoModalMilestone, setVideoModalMilestone] = useState<Milestone | null>(null);
 
   // Data Stores
@@ -90,7 +92,13 @@ export default function ProgressApp() {
 
     if (savedUser) {
       try {
-        setUserProfile(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        setUserProfile(parsed);
+        // If logged in and haven't finished tutorial yet, prompt it
+        const hasCompletedTutorial = localStorage.getItem("progress_tutorial_completed");
+        if (!hasCompletedTutorial) {
+          setIsTutorialOpen(true);
+        }
       } catch (e) {
         console.error(e);
       }
@@ -107,6 +115,13 @@ export default function ProgressApp() {
   const handleLogin = (profile: UserProfile) => {
     setUserProfile(profile);
     localStorage.setItem("progress_user", JSON.stringify(profile));
+    // Trigger tutorial right after login
+    setIsTutorialOpen(true);
+  };
+
+  const handleCloseTutorial = () => {
+    setIsTutorialOpen(false);
+    localStorage.setItem("progress_tutorial_completed", "true");
   };
 
   const handleThemeChange = (newTheme: ThemeMode) => {
@@ -308,13 +323,21 @@ export default function ProgressApp() {
   // 2. GATE 2: Distraction-free Goal Entry screen until user enters goal
   if (!currentGoal) {
     return (
-      <InitialGoalEntry
-        user={userProfile}
-        currentTheme={currentTheme}
-        onThemeChange={handleThemeChange}
-        onSubmitGoal={handleCreateGoal}
-        onInstantCuratedLoad={handleInstantCuratedLoad}
-      />
+      <>
+        <InitialGoalEntry
+          user={userProfile}
+          currentTheme={currentTheme}
+          onThemeChange={handleThemeChange}
+          onSubmitGoal={handleCreateGoal}
+          onInstantCuratedLoad={handleInstantCuratedLoad}
+          onOpenTutorial={() => setIsTutorialOpen(true)}
+        />
+        <TutorialModal
+          isOpen={isTutorialOpen}
+          onClose={handleCloseTutorial}
+          userName={userProfile.fullName}
+        />
+      </>
     );
   }
 
@@ -346,6 +369,7 @@ export default function ProgressApp() {
           onOpenStorage={() => setIsStorageOpen(true)}
           onOpenCalendar={() => setIsCalendarOpen(true)}
           onOpenProfile={() => setIsProfileOpen(true)}
+          onOpenTutorial={() => setIsTutorialOpen(true)}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
           currentTheme={currentTheme}
@@ -408,8 +432,16 @@ export default function ProgressApp() {
         onClose={() => setIsProfileOpen(false)}
         user={userProfile}
         onResetGoal={handleResetGoal}
+        onOpenTutorial={() => setIsTutorialOpen(true)}
         currentTheme={currentTheme}
         onThemeChange={handleThemeChange}
+      />
+
+      {/* Interactive Feature Walkthrough Tutorial Modal */}
+      <TutorialModal
+        isOpen={isTutorialOpen}
+        onClose={handleCloseTutorial}
+        userName={userProfile.fullName}
       />
 
       {/* Video Study Modal with In-App Player & AI Note Generating Bar */}
