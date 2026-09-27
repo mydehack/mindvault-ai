@@ -13,13 +13,8 @@ interface LoginViewProps {
   onThemeChange: (theme: ThemeMode) => void;
 }
 
-const AVATARS = [
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Progress",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=PardhuAI",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Architect",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=CyberPunk",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=QuantumDev",
-];
+const getAutoAvatar = (seed: string) =>
+  `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed || 'Progress')}`;
 
 export const LoginView: React.FC<LoginViewProps> = ({
   onLogin,
@@ -30,16 +25,16 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [email, setEmail] = useState("pardhu@progress.ai");
   const [role, setRole] = useState("Full-Stack AI & Systems Architect");
   const [learningStyle, setLearningStyle] = useState("Socratic Deep-Dive");
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const name = fullName.trim() || "Pardhu";
     const profile: UserProfile = {
       id: "usr-" + Date.now(),
-      fullName: fullName.trim() || "Pardhu",
+      fullName: name,
       email: email.trim() || "pardhu@progress.ai",
       role: role.trim() || "Full-Stack AI Architect",
-      avatarUrl: selectedAvatar,
+      avatarUrl: getAutoAvatar(name),
       learningStyle,
       currentStreak: 7,
       totalXp: 1850,
@@ -56,7 +51,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       fullName: "Pardhu",
       email: "pardhu@progress.ai",
       role: "Lead Systems Architect & AI Engineer",
-      avatarUrl: AVATARS[1],
+      avatarUrl: getAutoAvatar("PardhuAI"),
       learningStyle: "Socratic Deep-Dive & Systems Invariants",
       currentStreak: 7,
       totalXp: 2100,
@@ -165,29 +160,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <option value="Staff Architect Tradeoffs">Staff Architect Tradeoffs & Latency</option>
               <option value="FAANG Exam Drill & Active Recall">FAANG Exam Drill & Active Recall</option>
             </select>
-          </div>
-
-          {/* Avatar Selector */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-2">
-              Select Avatar
-            </label>
-            <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900/40 border border-vault-border">
-              {AVATARS.map((av, idx) => (
-                <button
-                  type="button"
-                  key={idx}
-                  onClick={() => setSelectedAvatar(av)}
-                  className={`size-11 rounded-xl p-1 transition-all overflow-hidden ${
-                    selectedAvatar === av
-                      ? "ring-2 ring-indigo-500 bg-indigo-500/20 scale-105"
-                      : "opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <img src={av} alt={`Avatar ${idx}`} className="size-full object-contain" />
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Action Buttons */}
