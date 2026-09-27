@@ -1,5 +1,5 @@
-import { Goal, Milestone, QuizAssessment, CourseRecommendation, PersonaType } from './types';
-import { resolveBestVideoCourse } from './youtube-resolver';
+import { Goal, Milestone, QuizAssessment, CourseRecommendation, PersonaType, VideoSuggestion } from './types';
+import { resolveBestVideoCourse, buildVideoMatchForQuery } from './youtube-resolver';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
@@ -63,7 +63,7 @@ export async function callGemini(
   }
 }
 
-// 1. Generate Goal-to-Action Roadmap
+// 1. Generate Goal-to-Action Roadmap with AI Video Suggestions
 export async function generateRoadmapAI(
   goalTitle: string,
   targetDuration: string = '30 days',
@@ -71,8 +71,6 @@ export async function generateRoadmapAI(
   learningStyle: string = 'Socratic Deep-Dive',
   dailyCommitment: string = '2 hours / day'
 ): Promise<Goal> {
-  const bestVideo = resolveBestVideoCourse(goalTitle);
-
   const prompt = `You are an elite curriculum architect and AI tutor for Progress.
 Break down this learning goal into a world-class, structured, actionable milestone roadmap:
 Goal: "${goalTitle}"
@@ -82,9 +80,17 @@ Learning Style: "${learningStyle}"
 Daily Study Time Available: "${dailyCommitment}"
 Note: Calibrate the milestone action items, pace, and time estimates so they realistically align with the user's daily study commitment of ${dailyCommitment}.
 
+For the overall goal AND for each of the 5 milestones, use your AI knowledge to suggest a premier, real or high-yield educational YouTube masterclass / lecture tutorial (from reputable educators like freeCodeCamp, MIT OpenCourseWare, Andrej Karpathy, Fireship, Primeagen, TechWorld with Nana, NeetCode, Traversy Media, etc.).
+
 Return a valid JSON object matching this structure:
 {
   "domain": "Domain Name (e.g., Systems Programming, Full-Stack AI)",
+  "bestOverallVideo": {
+    "title": "Comprehensive YouTube Tutorial Title for this skill",
+    "channel": "Channel Name (e.g. freeCodeCamp.org, Andrej Karpathy)",
+    "duration": "Duration (e.g. 5h 30m)",
+    "searchQuery": "YouTube search query to find this video"
+  },
   "milestones": [
     {
       "dayNumber": 1,
@@ -97,20 +103,45 @@ Return a valid JSON object matching this structure:
         "Concrete task 3 with measurable outcome"
       ],
       "mentalModels": ["Key Principle 1", "Key Principle 2"],
-      "videoSearchQuery": "Specific search query for this milestone"
+      "suggestedVideo": {
+        "title": "Targeted Video Title for this milestone",
+        "channel": "Channel Name",
+        "duration": "1h 45m",
+        "searchQuery": "Search query for this milestone tutorial"
+      }
     }
   ]
 }
 Create 5 comprehensive, logically sequential milestones covering the full ${targetDuration}. Return ONLY JSON.`;
 
   try {
-    const responseText = await callGemini('gemini-3.8-flash', prompt, 'You are an expert curriculum planner. Respond only in strict JSON format.', true);
+    const responseText = await callGemini('gemini-3.8-flash', prompt, 'You are an expert curriculum planner and video curator. Respond only in strict JSON format.', true);
     const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
     const goalId = 'goal-' + Date.now();
-    const milestones: Milestone[] = parsed.milestones.map((m: any, idx: number) => {
-      const milestoneVideo = resolveBestVideoCourse(m.title + ' ' + (m.videoSearchQuery || goalTitle));
+
+    // AI suggested best overall video
+    const bestVideo = parsed.bestOverallVideo?.title
+      ? buildVideoMatchForQuery(
+          goalTitle + ' ' + (parsed.bestOverallVideo.searchQuery || ''),
+          parsed.bestOverallVideo.title,
+          parsed.bestOverallVideo.channel,
+          parsed.bestOverallVideo.duration
+        )
+      : resolveBestVideoCourse(goalTitle);
+
+    const milestones: Milestone[] = (parsed.milestones || []).map((m: any, idx: number) => {
+      const vidMeta = m.suggestedVideo || {};
+      const milestoneVideo = vidMeta.title
+        ? buildVideoMatchForQuery(
+            m.title + ' ' + (vidMeta.searchQuery || goalTitle),
+            vidMeta.title,
+            vidMeta.channel,
+            vidMeta.duration
+          )
+        : resolveBestVideoCourse(m.title + ' ' + (m.videoSearchQuery || goalTitle));
+
       return {
         id: `ms-${goalId}-${idx + 1}`,
         goalId,
@@ -688,5 +719,116 @@ Provide a crisp, accurate, markdown-formatted answer grounded directly in the fi
     return await callGemini('gemini-3.8-flash', prompt, 'You are an expert technical assistant in Progress. Answer clearly.');
   } catch (err) {
     return `Based on **${fileName}**, this relates to resource invariants and implementation structure. Refer to the code blocks in the document.`;
+  }
+}
+
+// 9. AI Video Suggestions for Any Skill
+export async function suggestVideosAI(
+  skill: string,
+  level: string = 'Intermediate'
+): Promise<VideoSuggestion[]> {
+  const prompt = `You are an elite educational video researcher and AI Learning Architect for Progress.
+A learner requested video masterclasses to master this skill or domain:
+Skill / Target Subject: "${skill}"
+Learner Level: "${level}"
+
+Recommend 4 to 5 premier, high-yield educational YouTube courses or masterclasses that effectively teach this skill. Pick top respected channels and educators (e.g. freeCodeCamp.org, MIT OpenCourseWare, Stanford, Harvard CS50, Andrej Karpathy, Fireship, The Primeagen, TechWorld with Nana, NeetCode, ByteByteGo, Hussein Nasser, Traversy Media, Derek Banas, StatQuest, etc.).
+
+Cover different pedagogical angles:
+1. Foundation / Fundamentals Bootcamp
+2. Deep Dive Architectural Masterclass
+3. Hands-on Real World Project Build
+4. Production Hardening / Advanced Patterns
+5. Practical Crash Course / Rapid Reference
+
+Return a valid JSON array of objects with this schema:
+[
+  {
+    "title": "Accurate, descriptive title of the tutorial video",
+    "channel": "YouTube Channel / Educator Name",
+    "duration": "e.g. 4h 30m, 2h 15m, 45m",
+    "category": "Foundation" | "Deep Dive" | "Hands-on Project" | "Production Masterclass" | "Crash Course",
+    "searchQuery": "Precise YouTube search query to find this video",
+    "whyRecommended": "1-2 sentence compelling rationale explaining why this video is ideal for learning ${skill}",
+    "keyTopics": ["Topic 1", "Topic 2", "Topic 3"]
+  }
+]
+Return ONLY JSON array.`;
+
+  try {
+    const responseText = await callGemini(
+      'gemini-3.8-flash',
+      prompt,
+      'You are an expert video scout for technical learning. Respond strictly in valid JSON array.',
+      true
+    );
+    const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    const items = Array.isArray(parsed) ? parsed : (parsed.videos || parsed.suggestions || []);
+
+    return items.map((item: any, idx: number) => {
+      const match = buildVideoMatchForQuery(
+        item.searchQuery || item.title || skill,
+        item.title,
+        item.channel,
+        item.duration
+      );
+
+      return {
+        id: `vidsug-${Date.now()}-${idx + 1}`,
+        title: item.title || `${skill} Comprehensive Masterclass`,
+        channel: item.channel || match.channel || 'freeCodeCamp.org',
+        duration: item.duration || match.duration || '2h 30m',
+        url: match.url,
+        videoId: match.videoId,
+        thumbnailUrl: match.thumbnailUrl,
+        category: (['Foundation', 'Deep Dive', 'Hands-on Project', 'Production Masterclass', 'Crash Course'].includes(item.category)
+          ? item.category
+          : 'Deep Dive') as any,
+        whyRecommended: item.whyRecommended || `Essential educational masterclass for mastering core concepts in ${skill}.`,
+        keyTopics: item.keyTopics || ['Fundamentals', 'Implementation', 'Best Practices']
+      };
+    });
+  } catch (err) {
+    console.warn('AI Video suggestion fallback for skill:', skill);
+    const match = resolveBestVideoCourse(skill);
+    return [
+      {
+        id: `vidsug-fallback-1`,
+        title: `${skill} Full Course - Beginner to Advanced`,
+        channel: match.channel || 'freeCodeCamp.org',
+        duration: match.duration || '3h 30m',
+        url: match.url,
+        videoId: match.videoId,
+        thumbnailUrl: match.thumbnailUrl,
+        category: 'Foundation',
+        whyRecommended: `Comprehensive foundational walkthrough covering core syntax, structure, and mental models for ${skill}.`,
+        keyTopics: ['Core Invariants', 'Mental Models', 'Hands-on Examples']
+      },
+      {
+        id: `vidsug-fallback-2`,
+        title: `${skill} Deep Dive: Architecture & Production Systems`,
+        channel: 'Staff Engineering Academy',
+        duration: '2h 15m',
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(skill + ' architecture deep dive')}`,
+        videoId: match.videoId,
+        thumbnailUrl: match.thumbnailUrl,
+        category: 'Deep Dive',
+        whyRecommended: `Explores real-world production tradeoffs, memory and concurrency paradigms, and scale bottlenecks.`,
+        keyTopics: ['System Design', 'Performance Tuning', 'Tradeoff Analysis']
+      },
+      {
+        id: `vidsug-fallback-3`,
+        title: `Building Production Projects with ${skill}`,
+        channel: 'Code With Masters',
+        duration: '4h 10m',
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent('building project with ' + skill)}`,
+        videoId: match.videoId,
+        thumbnailUrl: match.thumbnailUrl,
+        category: 'Hands-on Project',
+        whyRecommended: `Step-by-step project implementation consolidating theory into deployable code artifacts.`,
+        keyTopics: ['Project Architecture', 'Debugging', 'Deployment']
+      }
+    ];
   }
 }

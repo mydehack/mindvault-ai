@@ -98,19 +98,69 @@ const CURATED_COURSES: Record<string, YouTubeCourseMatch> = {
     url: 'https://www.youtube.com/watch?v=30LWjhZzg50',
     thumbnailUrl: 'https://img.youtube.com/vi/30LWjhZzg50/maxresdefault.jpg',
     description: 'Master strict TypeScript: generics, utility types, conditional types, discriminated unions, and production patterns.'
+  },
+  docker: {
+    videoId: 'fqMOX6JJhGo',
+    title: 'Docker Tutorial for Beginners - Full Course',
+    channel: 'TechWorld with Nana',
+    duration: '2h 10m',
+    url: 'https://www.youtube.com/watch?v=fqMOX6JJhGo',
+    thumbnailUrl: 'https://img.youtube.com/vi/fqMOX6JJhGo/maxresdefault.jpg',
+    description: 'Learn Docker containerization from scratch: images, containers, Dockerfile, docker-compose, and networking.'
+  },
+  pytorch: {
+    videoId: 'V_xro1bcAuA',
+    title: 'PyTorch for Deep Learning & Neural Networks Bootcamp',
+    channel: 'freeCodeCamp.org',
+    duration: '25h 42m',
+    url: 'https://www.youtube.com/watch?v=V_xro1bcAuA',
+    thumbnailUrl: 'https://img.youtube.com/vi/V_xro1bcAuA/maxresdefault.jpg',
+    description: 'Master PyTorch for deep learning: tensors, backpropagation, CNNs, computer vision, NLP, and model deployment.'
+  },
+  langchain: {
+    videoId: 'aywZrzNaKjs',
+    title: 'LangChain & Vector Database RAG Course',
+    channel: 'freeCodeCamp.org',
+    duration: '3h 18m',
+    url: 'https://www.youtube.com/watch?v=aywZrzNaKjs',
+    thumbnailUrl: 'https://img.youtube.com/vi/aywZrzNaKjs/maxresdefault.jpg',
+    description: 'Build production generative AI agents and Retrieval Augmented Generation (RAG) pipelines using LangChain and pgvector.'
+  },
+  cpp: {
+    videoId: 'vLnPwxZdW4Y',
+    title: 'C++ Programming Course - Beginner to Advanced',
+    channel: 'freeCodeCamp.org',
+    duration: '31h 05m',
+    url: 'https://www.youtube.com/watch?v=vLnPwxZdW4Y',
+    thumbnailUrl: 'https://img.youtube.com/vi/vLnPwxZdW4Y/maxresdefault.jpg',
+    description: 'Master modern C++: memory management, pointers, templates, RAII, OOP, standard template library (STL), and multithreading.'
+  },
+  sql: {
+    videoId: 'HXV3zeRR3h4',
+    title: 'SQL Tutorial - Full Database Course for Beginners',
+    channel: 'freeCodeCamp.org',
+    duration: '4h 20m',
+    url: 'https://www.youtube.com/watch?v=HXV3zeRR3h4',
+    thumbnailUrl: 'https://img.youtube.com/vi/HXV3zeRR3h4/maxresdefault.jpg',
+    description: 'The ultimate guide to SQL and relational databases: queries, joins, indexes, schemas, and ACID transactions.'
   }
 };
 
 export function resolveBestVideoCourse(query: string): YouTubeCourseMatch {
   const q = query.toLowerCase();
   
-  if (q.includes('rust')) return CURATED_COURSES.rust;
-  if (q.includes('ai') || q.includes('llm') || q.includes('gpt') || q.includes('machine learning')) return CURATED_COURSES.ai;
+  if (q.includes('rust') || q.includes('tokio')) return CURATED_COURSES.rust;
+  if (q.includes('pytorch') || q.includes('torch')) return CURATED_COURSES.pytorch;
+  if (q.includes('langchain') || q.includes('rag') || q.includes('vector')) return CURATED_COURSES.langchain;
   if (q.includes('gemini') || q.includes('google genai')) return CURATED_COURSES.gemini;
-  if (q.includes('system') || q.includes('distributed') || q.includes('architecture')) return CURATED_COURSES.system_design;
+  if (q.includes('ai') || q.includes('llm') || q.includes('gpt') || q.includes('deep learning') || q.includes('machine learning')) return CURATED_COURSES.ai;
+  if (q.includes('docker')) return CURATED_COURSES.docker;
+  if (q.includes('k8s') || q.includes('kubernetes') || q.includes('cloud')) return CURATED_COURSES.kubernetes;
+  if (q.includes('system') || q.includes('distributed') || q.includes('architecture') || q.includes('redis') || q.includes('cache')) return CURATED_COURSES.system_design;
   if (q.includes('next') || q.includes('react') || q.includes('frontend')) return CURATED_COURSES.nextjs;
-  if (q.includes('python')) return CURATED_COURSES.python;
-  if (q.includes('k8s') || q.includes('kubernetes') || q.includes('docker') || q.includes('cloud')) return CURATED_COURSES.kubernetes;
+  if (q.includes('sql') || q.includes('postgres') || q.includes('database')) return CURATED_COURSES.sql;
+  if (q.includes('c++') || q.includes('cpp')) return CURATED_COURSES.cpp;
+  if (q.includes('python') || q.includes('fastapi')) return CURATED_COURSES.python;
   if (q.includes('algo') || q.includes('dsa') || q.includes('data structure') || q.includes('leetcode')) return CURATED_COURSES.dsa;
   if (q.includes('go') || q.includes('golang')) return CURATED_COURSES.golang;
   if (q.includes('type') || q.includes('ts')) return CURATED_COURSES.typescript;
@@ -119,10 +169,38 @@ export function resolveBestVideoCourse(query: string): YouTubeCourseMatch {
   return {
     videoId: 'rfscVS0vtbw',
     title: `${query} Masterclass & Engineering Fundamentals`,
-    channel: 'Engineering Academy',
+    channel: 'freeCodeCamp.org',
     duration: '3h 15m',
-    url: 'https://www.youtube.com/watch?v=rfscVS0vtbw',
+    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' tutorial full course')}`,
     thumbnailUrl: 'https://img.youtube.com/vi/rfscVS0vtbw/maxresdefault.jpg',
+    description: `Comprehensive video tutorial and practical guide covering core mental models and implementation steps for ${query}.`
+  };
+}
+
+export function buildVideoMatchForQuery(
+  query: string,
+  title?: string,
+  channel?: string,
+  duration?: string,
+  suggestedId?: string
+): YouTubeCourseMatch {
+  let videoId = suggestedId && suggestedId.length === 11 ? suggestedId : '';
+  if (!videoId) {
+    const matched = resolveBestVideoCourse(query + ' ' + (title || ''));
+    videoId = matched.videoId;
+  }
+  const effectiveTitle = title || `${query} Masterclass`;
+  const effectiveChannel = channel || 'Engineering Academy';
+  const effectiveDuration = duration || '2h 30m';
+  const url = videoId ? `https://www.youtube.com/watch?v=${videoId}` : `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' tutorial full course')}`;
+  
+  return {
+    videoId: videoId || 'rfscVS0vtbw',
+    title: effectiveTitle,
+    channel: effectiveChannel,
+    duration: effectiveDuration,
+    url,
+    thumbnailUrl: `https://img.youtube.com/vi/${videoId || 'rfscVS0vtbw'}/hqdefault.jpg`,
     description: `Comprehensive video tutorial and practical guide covering core mental models and implementation steps for ${query}.`
   };
 }

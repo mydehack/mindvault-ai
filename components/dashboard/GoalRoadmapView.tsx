@@ -26,6 +26,7 @@ interface GoalRoadmapViewProps {
   onToggleActionItem: (milestoneId: string, actionId: string) => void;
   onOpenVideoStudy: (milestone: Milestone) => void;
   onOpenAssessment: () => void;
+  onOpenVideoLab?: () => void;
 }
 
 export const GoalRoadmapView: React.FC<GoalRoadmapViewProps> = ({
@@ -33,6 +34,7 @@ export const GoalRoadmapView: React.FC<GoalRoadmapViewProps> = ({
   onToggleActionItem,
   onOpenVideoStudy,
   onOpenAssessment,
+  onOpenVideoLab,
 }) => {
   const isGoalFinished = goal.progressPercentage >= 100;
 
@@ -92,17 +94,29 @@ export const GoalRoadmapView: React.FC<GoalRoadmapViewProps> = ({
               </button>
             )}
 
-            {/* Best Curated Video Link */}
-            <a
-              href={goal.bestVideoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl border border-vault-border bg-slate-900/60 hover:bg-slate-800 py-2.5 px-4 text-xs font-medium text-foreground/80 hover:text-foreground transition-all"
-            >
-              <Video className="size-3.5 text-red-400" />
-              <span>Full Video Masterclass</span>
-              <ExternalLink className="size-3 text-foreground/40" />
-            </a>
+            {/* Best Curated Video Link & AI Video Scout */}
+            <div className="flex flex-col sm:flex-row md:flex-col gap-2">
+              {onOpenVideoLab && (
+                <button
+                  onClick={onOpenVideoLab}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 py-2.5 px-4 text-xs font-bold text-red-300 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                >
+                  <Sparkles className="size-3.5 text-red-400" />
+                  <span>AI Video Scout ({goal.title.slice(0, 18)}...)</span>
+                </button>
+              )}
+
+              <a
+                href={goal.bestVideoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl border border-vault-border bg-slate-900/60 hover:bg-slate-800 py-2.5 px-4 text-xs font-medium text-foreground/80 hover:text-foreground transition-all"
+              >
+                <Video className="size-3.5 text-red-400" />
+                <span>Full Video Masterclass</span>
+                <ExternalLink className="size-3 text-foreground/40" />
+              </a>
+            </div>
           </div>
         </div>
 

@@ -384,6 +384,7 @@ export default function ProgressApp() {
               onToggleActionItem={handleToggleActionItem}
               onOpenVideoStudy={(m) => setVideoModalMilestone(m)}
               onOpenAssessment={() => setIsAssessmentOpen(true)}
+              onOpenVideoLab={() => setActiveView("video")}
             />
           )}
 
@@ -393,6 +394,7 @@ export default function ProgressApp() {
               onToggleActionItem={handleToggleActionItem}
               onOpenVideoStudy={(m) => setVideoModalMilestone(m)}
               onOpenAssessment={() => setIsAssessmentOpen(true)}
+              onOpenVideoLab={() => setActiveView("video")}
             />
           )}
 
@@ -401,7 +403,10 @@ export default function ProgressApp() {
           {activeView === "mentor" && <MentorChatView />}
 
           {activeView === "video" && (
-            <VideoLabView onSaveToVault={handleSaveNoteToStorage} />
+            <VideoLabView
+              initialSkill={currentGoal?.title}
+              onSaveToVault={handleSaveNoteToStorage}
+            />
           )}
 
           {activeView === "analytics" && (

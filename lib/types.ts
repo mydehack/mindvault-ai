@@ -154,3 +154,16 @@ export interface CourseRecommendation {
   skillsGained: string[];
   curatedVideoUrl: string;
 }
+
+export interface VideoSuggestion {
+  id: string;
+  title: string;
+  channel: string;
+  duration: string;
+  url: string;
+  videoId: string;
+  thumbnailUrl: string;
+  category: 'Foundation' | 'Deep Dive' | 'Hands-on Project' | 'Production Masterclass' | 'Crash Course';
+  whyRecommended: string;
+  keyTopics: string[];
+}
