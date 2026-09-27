@@ -3,7 +3,7 @@ import './globals.css';
 import { SkiperGooeyFilterProvider } from '@/components/ui/skiper-ui/skiper64';
 
 export const metadata: Metadata = {
-  title: 'Progress — Goal-to-Action OS & Digital Memory Vault',
+  title: 'Progress',
   description: 'Production-ready full-stack learning operating system with Google Gemini AI, pgvector memory, and adaptive mentoring.',
 };
 
