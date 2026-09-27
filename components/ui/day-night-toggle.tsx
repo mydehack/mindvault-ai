@@ -53,10 +53,6 @@ export const DayNightToggle: React.FC<DayNightToggleProps> = ({
     }
   };
 
-  if (!mounted) {
-    return <div className="h-9 w-20 rounded-full bg-slate-800/50 animate-pulse" />;
-  }
-
   return (
     <button
       type="button"
