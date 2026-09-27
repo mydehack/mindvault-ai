@@ -36,15 +36,15 @@ const TUTORIAL_STEPS = [
   },
   {
     id: "milestones",
-    badge: "Step 2 • Track Milestones & Study Labs",
+    badge: "Step 2 • Track Milestones & AI Video Suggestions",
     badgeColor: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-    title: "How to Complete Tasks & Watch Masterclasses",
+    title: "How to Complete Tasks & Study AI Video Courses",
     description:
-      "Click checkboxes as you finish tasks to earn +25 XP and watch the progress bar advance. Click 'Watch Lecture Video' on any milestone card to open the in-app video player with automatic AI note generation and auto-completion (+100 XP).",
+      "Click checkboxes as you finish tasks to earn +25 XP. Every milestone features tailored video masterclasses curated by Gemini AI. You can also click 'AI Video Scout' or visit the Video Lab to get personalized video suggestions for ANY engineering skill!",
     icon: Clock,
     gradient: "from-cyan-600 via-teal-600 to-emerald-700",
-    tip: "Completing 100% of the roadmap unlocks your Post-Goal Quiz Assessment and Certificate!",
-    highlightTag: "Interactive Lab"
+    tip: "Clicking 'Study in Lab' on any suggested video extracts timestamped chapters and lets you save notes directly to your vault.",
+    highlightTag: "AI Video Scout"
   },
   {
     id: "vault",

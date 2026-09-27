@@ -255,15 +255,22 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
               {isGenerating ? (
                 <>
                   <div className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Synthesizing Curriculum with Gemini 3.8 Flash...</span>
+                  <span>Synthesizing Curriculum & Curating Video Masterclasses with Gemini 3.8...</span>
                 </>
               ) : (
                 <>
-                  <span>Generate Actionable Roadmap & Unlock Progress</span>
+                  <Sparkles className="size-4 text-amber-300" />
+                  <span>Generate Roadmap & AI Video Suggestions</span>
                   <ArrowRight className="size-4 group-hover:translate-x-1.5 transition-transform" />
                 </>
               )}
             </button>
+
+            {/* AI Video Scouting Badge */}
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-foreground/50 pt-0.5">
+              <Sparkles className="size-3 text-red-400" />
+              <span>Includes AI-Curated YouTube Masterclasses & Milestone Video Labs for your skill</span>
+            </div>
 
             {/* Instant Curated Load button */}
             <button
