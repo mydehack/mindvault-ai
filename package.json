@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@next/swc-wasm-nodejs": "^16.3.6",
     "@supabase/supabase-js": "^2.45.6",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
