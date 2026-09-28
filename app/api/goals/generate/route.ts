@@ -3,17 +3,26 @@ import { generateRoadmapAI } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
   try {
-    const { goalTitle, targetDuration, difficultyLevel, learningStyle, dailyCommitment } = await req.json();
-    if (!goalTitle) {
+    const {
+      goalTitle,
+      targetDuration = '30 days',
+      difficultyLevel = 'Intermediate',
+      learningStyle = 'Socratic Deep-Dive',
+      dailyCommitment = '2 hours / day',
+      language = 'English'
+    } = await req.json();
+
+    if (!goalTitle || typeof goalTitle !== 'string') {
       return NextResponse.json({ error: 'goalTitle is required' }, { status: 400 });
     }
 
     const goal = await generateRoadmapAI(
-      goalTitle,
-      targetDuration || '30 days',
-      difficultyLevel || 'Intermediate',
-      learningStyle || 'Socratic Deep-Dive',
-      dailyCommitment || '2 hours / day'
+      goalTitle.trim(),
+      targetDuration,
+      difficultyLevel,
+      learningStyle,
+      dailyCommitment,
+      language
     );
 
     return NextResponse.json({ success: true, goal });

@@ -189,3 +189,88 @@ export interface RoadmapCopilotMessage {
   videoReplacement?: RoadmapVideoReplacement;
   isIssueSignificant?: boolean;
 }
+
+// ==============================================================================
+// Dynamic AI Course & Video Recommendation System Types
+// ==============================================================================
+
+export type LearningMode = 'course' | 'video' | 'project';
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export interface LearningIntent {
+  skill: string;
+  domain: string;
+  topic?: string;
+  level: SkillLevel;
+  goal: string;
+  language: string;
+  contentType: LearningMode;
+  rawQuery?: string;
+}
+
+export interface CandidateVideo {
+  id: string;
+  videoId: string;
+  title: string;
+  channel: string;
+  duration: string;
+  url: string;
+  thumbnailUrl: string;
+  description: string;
+  skill: string;
+  topic?: string;
+  level: SkillLevel;
+  language: string;
+  category: 'Foundation' | 'Deep Dive' | 'Hands-on Project' | 'Production Masterclass' | 'Crash Course';
+  relevanceScore: number;
+  whyRecommended: string;
+  recommendationReason: string;
+  source: 'youtube_search' | 'approved_external_source' | 'user_saved' | 'hardcoded';
+  normalizedUrl?: string;
+  keyTopics: string[];
+}
+
+export interface RecommendationHistoryItem {
+  id: string;
+  userId: string;
+  videoId: string;
+  videoUrl: string;
+  title: string;
+  channel?: string;
+  skill: string;
+  topic?: string;
+  level: string;
+  goal?: string;
+  language?: string;
+  contentType?: string;
+  matchScore?: number;
+  recommendedAt: string;
+  watched: boolean;
+  completed: boolean;
+  progress: number;
+}
+
+export interface RecommendationDebugInfo {
+  requestedSkill: string;
+  searchQuery: string;
+  candidatesFound: number;
+  rejected: {
+    wrongSkill: number;
+    duplicate: number;
+    previouslyRecommended: number;
+    wrongLevel: number;
+    hardcodedSource: number;
+  };
+  accepted: number;
+}
+
+export interface RecommendationResult {
+  intent: LearningIntent;
+  searchQueries: string[];
+  totalCandidatesEvaluated: number;
+  videos: CandidateVideo[];
+  fromCache?: boolean;
+  debug?: RecommendationDebugInfo;
+}
+
+

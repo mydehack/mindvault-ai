@@ -150,6 +150,30 @@ CREATE TABLE IF NOT EXISTS public.storage_files (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- 7. Recommendation History Table (Skill-Specific Course Tracking & Anti-Repeat Engine)
+CREATE TABLE IF NOT EXISTS public.recommendation_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT NOT NULL,
+    video_id TEXT NOT NULL,
+    video_url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    channel TEXT,
+    skill TEXT NOT NULL,
+    topic TEXT,
+    level TEXT NOT NULL DEFAULT 'intermediate',
+    goal TEXT,
+    language TEXT DEFAULT 'English',
+    content_type TEXT DEFAULT 'course',
+    match_score INT DEFAULT 95,
+    recommended_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    watched BOOLEAN DEFAULT FALSE,
+    completed BOOLEAN DEFAULT FALSE,
+    progress INT DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_rec_history_user_skill ON public.recommendation_history(user_id, skill);
+CREATE INDEX IF NOT EXISTS idx_rec_history_video_id ON public.recommendation_history(video_id);
+
 -- Row-Level Security (RLS) Policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
@@ -157,6 +181,7 @@ ALTER TABLE public.milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.memory_vault ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_quests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.storage_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recommendation_history ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read/write for demo and authenticated sessions
 CREATE POLICY "Allow authenticated profile access" ON public.profiles FOR ALL USING (true);
@@ -165,3 +190,4 @@ CREATE POLICY "Allow authenticated milestones access" ON public.milestones FOR A
 CREATE POLICY "Allow authenticated memory_vault access" ON public.memory_vault FOR ALL USING (true);
 CREATE POLICY "Allow authenticated daily_quests access" ON public.daily_quests FOR ALL USING (true);
 CREATE POLICY "Allow authenticated storage_files access" ON public.storage_files FOR ALL USING (true);
+CREATE POLICY "Allow authenticated recommendation_history access" ON public.recommendation_history FOR ALL USING (true);

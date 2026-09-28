@@ -38,79 +38,36 @@ const STARTER_SKILL_PILLS = [
   "🔷 Strict TypeScript Mastery"
 ];
 
-const INITIAL_SUGGESTIONS: VideoSuggestion[] = [
-  {
-    id: "sug-init-1",
-    title: "Rust Programming Full Course - FreeCodeCamp",
-    channel: "freeCodeCamp.org",
-    duration: "13h 48m",
-    url: "https://www.youtube.com/watch?v=MsocPEZBd-M",
-    videoId: "MsocPEZBd-M",
-    thumbnailUrl: "https://img.youtube.com/vi/MsocPEZBd-M/hqdefault.jpg",
-    category: "Foundation",
-    whyRecommended: "The definitive full-length bootcamp covering memory safety, borrow checking, ownership, and Tokio async programming from scratch.",
-    keyTopics: ["Ownership & Lifetimes", "Pattern Matching", "Tokio Async Concurrency"]
-  },
-  {
-    id: "sug-init-2",
-    title: "Deep Learning & Neural Networks Foundations",
-    channel: "Andrej Karpathy",
-    duration: "2h 25m",
-    url: "https://www.youtube.com/watch?v=kCc8FmEb1nY",
-    videoId: "kCc8FmEb1nY",
-    thumbnailUrl: "https://img.youtube.com/vi/kCc8FmEb1nY/hqdefault.jpg",
-    category: "Deep Dive",
-    whyRecommended: "Builds backpropagation and micrograd from first principles. Essential foundation for understanding modern Transformer architectures and Gemini.",
-    keyTopics: ["Backpropagation", "Gradient Descent", "Computational Graphs"]
-  },
-  {
-    id: "sug-init-3",
-    title: "Google Gemini API Full Masterclass & Agentic Workflows",
-    channel: "Google Cloud Tech",
-    duration: "1h 42m",
-    url: "https://www.youtube.com/watch?v=q154F_cWzrg",
-    videoId: "q154F_cWzrg",
-    thumbnailUrl: "https://img.youtube.com/vi/q154F_cWzrg/hqdefault.jpg",
-    category: "Production Masterclass",
-    whyRecommended: "Practical end-to-end architecture guide on building tool-calling agentic pipelines, structured JSON schema outputs, and live multimodal streaming.",
-    keyTopics: ["Gemini 3.8 Flash", "Function Calling", "Multimodal Agents"]
-  },
-  {
-    id: "sug-init-4",
-    title: "Kubernetes Tutorial for Beginners [Full Course in 4 Hours]",
-    channel: "TechWorld with Nana",
-    duration: "3h 36m",
-    url: "https://www.youtube.com/watch?v=X48VuDVv0do",
-    videoId: "X48VuDVv0do",
-    thumbnailUrl: "https://img.youtube.com/vi/X48VuDVv0do/hqdefault.jpg",
-    category: "Hands-on Project",
-    whyRecommended: "High-clarity visual guide to container orchestration, Pod life cycles, Services, Ingress controllers, and real cluster deployments.",
-    keyTopics: ["Pods & Deployments", "Cluster Ingress", "ConfigMaps & Secrets"]
-  }
-];
-
 export const VideoLabView: React.FC<VideoLabViewProps> = ({ initialSkill, onSaveToVault }) => {
   // Skill scout state
   const [skillQuery, setSkillQuery] = useState(initialSkill || "");
   const [isSearchingAI, setIsSearchingAI] = useState(false);
-  const [suggestions, setSuggestions] = useState<VideoSuggestion[]>(INITIAL_SUGGESTIONS);
-  const [searchedSkill, setSearchedSkill] = useState(initialSkill ? initialSkill : "Curated Engineering Skills");
+  const [suggestions, setSuggestions] = useState<VideoSuggestion[]>([]);
+  const [searchedSkill, setSearchedSkill] = useState(initialSkill ? initialSkill : "Python Programming");
+  const [selectedLevel, setSelectedLevel] = useState<string>("Intermediate");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
+  const [selectedMode, setSelectedMode] = useState<string>("course");
 
   // In-lab video player & analysis state
-  const [urlInput, setUrlInput] = useState("https://www.youtube.com/watch?v=MsocPEZBd-M");
-  const [activeCourse, setActiveCourse] = useState(resolveBestVideoCourse(initialSkill || "Rust"));
+  const [urlInput, setUrlInput] = useState("https://www.youtube.com/results?search_query=Python+complete+tutorial");
+  const [activeCourse, setActiveCourse] = useState(resolveBestVideoCourse(initialSkill || "Python Programming"));
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // If initialSkill is passed, trigger AI video search on first load
+  // Trigger dynamic video search on first load for the requested skill
   useEffect(() => {
-    if (initialSkill && initialSkill.trim()) {
-      handleSearchVideosForSkill(initialSkill.trim());
-    }
+    const target = initialSkill && initialSkill.trim() ? initialSkill.trim() : "Python Programming";
+    setSkillQuery(target);
+    handleSearchVideosForSkill(target, selectedLevel, selectedLanguage, selectedMode);
   }, [initialSkill]);
 
-  const handleSearchVideosForSkill = async (targetSkill: string) => {
+  const handleSearchVideosForSkill = async (
+    targetSkill: string,
+    lvl: string = selectedLevel,
+    lang: string = selectedLanguage,
+    mode: string = selectedMode
+  ) => {
     if (!targetSkill.trim()) return;
     setIsSearchingAI(true);
     setSearchedSkill(targetSkill);
@@ -119,7 +76,13 @@ export const VideoLabView: React.FC<VideoLabViewProps> = ({ initialSkill, onSave
       const res = await fetch("/api/video/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill: targetSkill, level: "Intermediate" })
+        body: JSON.stringify({
+          query: targetSkill,
+          skill: targetSkill,
+          level: lvl,
+          language: lang,
+          contentType: mode
+        })
       });
 
       if (res.ok) {
@@ -131,25 +94,26 @@ export const VideoLabView: React.FC<VideoLabViewProps> = ({ initialSkill, onSave
           if (topVid) {
             handleLoadSuggestedVideo(topVid);
           }
+          return;
         }
-      } else {
-        // Local fallback match
-        const match = resolveBestVideoCourse(targetSkill);
-        setSuggestions([
-          {
-            id: "fallback-" + Date.now(),
-            title: match.title,
-            channel: match.channel,
-            duration: match.duration,
-            url: match.url,
-            videoId: match.videoId,
-            thumbnailUrl: match.thumbnailUrl,
-            category: "Foundation",
-            whyRecommended: `Comprehensive foundational tutorial specifically aligned with ${targetSkill}.`,
-            keyTopics: ["Core Concepts", "Implementation", "Production Best Practices"]
-          }
-        ]);
       }
+
+      // Dynamic fallback match strictly for the targetSkill (never unrelated hardcoded video)
+      const match = resolveBestVideoCourse(targetSkill);
+      setSuggestions([
+        {
+          id: "sug-" + Date.now(),
+          title: match.title,
+          channel: match.channel,
+          duration: match.duration,
+          url: match.url,
+          videoId: match.videoId,
+          thumbnailUrl: match.thumbnailUrl,
+          category: "Foundation",
+          whyRecommended: `Comprehensive educational tutorial specifically aligned with ${targetSkill}.`,
+          keyTopics: [targetSkill, "Core Concepts", "Implementation"]
+        }
+      ]);
     } catch (err) {
       console.warn("AI Video Suggestion API error:", err);
     } finally {
@@ -160,7 +124,7 @@ export const VideoLabView: React.FC<VideoLabViewProps> = ({ initialSkill, onSave
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (skillQuery.trim()) {
-      handleSearchVideosForSkill(skillQuery.trim());
+      handleSearchVideosForSkill(skillQuery.trim(), selectedLevel, selectedLanguage, selectedMode);
     }
   };
 
@@ -297,6 +261,81 @@ export const VideoLabView: React.FC<VideoLabViewProps> = ({ initialSkill, onSave
               )}
             </button>
           </form>
+
+          {/* Pedagogical Control Bar: Mode, Level, Language */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 pb-1 border-t border-vault-border/50">
+            {/* Mode Selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Mode:</span>
+              <div className="flex rounded-xl bg-slate-900/60 p-1 border border-vault-border/60">
+                {(['course', 'video', 'project'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMode(m);
+                      if (skillQuery.trim()) handleSearchVideosForSkill(skillQuery.trim(), selectedLevel, selectedLanguage, m);
+                    }}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg capitalize transition-all ${
+                      selectedMode === m
+                        ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                        : "text-foreground/60 hover:text-foreground"
+                    }`}
+                  >
+                    {m === 'course' ? 'Course' : m === 'video' ? 'Concept' : 'Project'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Level Selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Level:</span>
+              <div className="flex rounded-xl bg-slate-900/60 p-1 border border-vault-border/60">
+                {(['Beginner', 'Intermediate', 'Advanced'] as const).map((lvl) => (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() => {
+                      setSelectedLevel(lvl);
+                      if (skillQuery.trim()) handleSearchVideosForSkill(skillQuery.trim(), lvl, selectedLanguage, selectedMode);
+                    }}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                      selectedLevel === lvl
+                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                        : "text-foreground/60 hover:text-foreground"
+                    }`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Language Selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Language:</span>
+              <div className="flex rounded-xl bg-slate-900/60 p-1 border border-vault-border/60">
+                {(['English', 'Telugu', 'Hindi', 'Spanish'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => {
+                      setSelectedLanguage(lang);
+                      if (skillQuery.trim()) handleSearchVideosForSkill(skillQuery.trim(), selectedLevel, lang, selectedMode);
+                    }}
+                    className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                      selectedLanguage === lang
+                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                        : "text-foreground/60 hover:text-foreground"
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Quick Skill Suggestion Pills */}
           <div className="flex flex-wrap items-center gap-1.5 pt-1">

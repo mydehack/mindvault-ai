@@ -1,5 +1,6 @@
 import { Goal, Milestone, QuizAssessment, CourseRecommendation, PersonaType, VideoSuggestion, RoadmapVideoReplacement, RoadmapCopilotMessage } from './types';
 import { resolveBestVideoCourse, buildVideoMatchForQuery, resolveRoadmapVideosForGoal } from './youtube-resolver';
+import { recommendVideos, generateCourseRoadmap, extractLearningIntent } from './recommendation-engine';
 
 function decodeSecretKey(b64: string): string {
   try {
@@ -97,8 +98,8 @@ export async function callGeminiDirect(
     if (!res.ok) {
       const errText = await res.text();
       console.warn(`Gemini API error with model ${model}:`, errText);
-      if (model !== 'gemini-2.5-flash') {
-        return await callGeminiDirect('gemini-2.5-flash', prompt, systemInstruction, jsonMode);
+      if (model !== 'gemini-1.5-flash') {
+        return await callGeminiDirect('gemini-1.5-flash', prompt, systemInstruction, jsonMode);
       }
       throw new Error(`Gemini API returned status ${res.status}: ${errText}`);
     }
@@ -144,262 +145,28 @@ export const callGemini = (
   jsonMode: boolean = false
 ) => callAI(prompt, systemInstruction, jsonMode, model);
 
-// 1. Generate Goal-to-Action Roadmap with AI Video Suggestions
+// 1. Generate Goal-to-Action Roadmap with Dynamic AI Recommendation Engine
 export async function generateRoadmapAI(
   goalTitle: string,
   targetDuration: string = '30 days',
   difficultyLevel: string = 'Intermediate',
   learningStyle: string = 'Socratic Deep-Dive',
-  dailyCommitment: string = '2 hours / day'
+  dailyCommitment: string = '2 hours / day',
+  language?: string
 ): Promise<Goal> {
-  const prompt = `You are an elite curriculum architect and AI educational video curator.
-The learner wants to master: "${goalTitle}".
-Target Duration: "${targetDuration}"
-Proficiency Level: "${difficultyLevel}"
-Learning Style: "${learningStyle}"
-Daily Time Budget: "${dailyCommitment}"
+  const intent = await extractLearningIntent(
+    goalTitle,
+    difficultyLevel,
+    undefined,
+    language
+  );
 
-STEP 1: IDENTIFY THE BEST REAL YOUTUBE COURSES FOR THIS SKILL:
-Search your comprehensive knowledge base for the absolute premier, highest-yield educational YouTube tutorials & masterclasses that exist specifically for "${goalTitle}" (from acclaimed educators like freeCodeCamp, MIT OpenCourseWare, Harvard CS50, Fireship, Andrej Karpathy, Traversy Media, TechWorld with Nana, NeetCode, The Primeagen, etc.).
-
-STEP 2: ALLOCATE THOSE EXACT VIDEOS TO THE ROADMAP MILESTONES:
-You must select:
-- "bestOverallVideo": The single #1 most authoritative, comprehensive video masterclass for "${goalTitle}".
-- 5 distinct, non-repeating milestone videos matched to each stage:
-  * Milestone 1: Best Foundation, Syntax & Setup video tutorial
-  * Milestone 2: Best Core Concepts & Primitives tutorial
-  * Milestone 3: Best Deep-Dive Architecture & Advanced Patterns video
-  * Milestone 4: Best Hands-on Full Real-World Project Build tutorial
-  * Milestone 5: Best Production Deployment, Profiling & Best Practices capstone video
-
-Return a valid JSON object matching this structure:
-{
-  "domain": "Domain Name (e.g., Systems Programming, Full-Stack AI)",
-  "bestOverallVideo": {
-    "title": "Exact Title of the Best YouTube Tutorial for this skill",
-    "channel": "Channel Name (e.g. freeCodeCamp.org, Andrej Karpathy)",
-    "duration": "Duration (e.g. 5h 30m)",
-    "videoId": "11-character YouTube video ID if known, else leave empty",
-    "searchQuery": "YouTube search query to find this video",
-    "whySelected": "Why this video is the absolute best for this skill"
-  },
-  "milestones": [
-    {
-      "dayNumber": 1,
-      "title": "Milestone title",
-      "description": "Clear conceptual overview and objective for this stage",
-      "timeEstimate": "2-3 hours",
-      "actionItems": [
-        "Concrete task 1 with measurable outcome",
-        "Concrete task 2 with measurable outcome",
-        "Concrete task 3 with measurable outcome"
-      ],
-      "mentalModels": ["Key Principle 1", "Key Principle 2"],
-      "suggestedVideo": {
-        "title": "Exact Video Title specifically chosen for this milestone",
-        "channel": "Channel Name",
-        "duration": "1h 45m",
-        "videoId": "11-character YouTube video ID if known",
-        "searchQuery": "Search query for this milestone tutorial",
-        "whySelected": "Why this video is the best for this specific milestone stage"
-      }
-    }
-  ]
-}
-Create 5 comprehensive, logically sequential milestones covering the full ${targetDuration}. Return ONLY JSON.`;
-
-  try {
-    const responseText = await callAI(prompt, 'You are an expert curriculum architect and YouTube educational video curator. Respond only in strict JSON format.', true);
-    const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-
-    const goalId = 'goal-' + Date.now();
-
-    // Multi-stage unique video resolution: Guarantees 100% unique, non-repeating video for every milestone
-    const videoResolution = resolveRoadmapVideosForGoal(goalTitle, parsed.milestones || []);
-
-    // AI suggested best overall video
-    const bestVideo = parsed.bestOverallVideo?.title
-      ? buildVideoMatchForQuery(
-          goalTitle + ' ' + (parsed.bestOverallVideo.searchQuery || ''),
-          parsed.bestOverallVideo.title,
-          parsed.bestOverallVideo.channel,
-          parsed.bestOverallVideo.duration
-        )
-      : videoResolution.bestOverallVideo;
-
-    const milestones: Milestone[] = (parsed.milestones || []).map((m: any, idx: number) => {
-      const milestoneVideo = videoResolution.milestoneVideos[idx] || resolveBestVideoCourse(m.title);
-
-      return {
-        id: `ms-${goalId}-${idx + 1}`,
-        goalId,
-        dayNumber: m.dayNumber || (idx + 1) * Math.max(1, Math.floor(parseInt(targetDuration) / 5) || 1),
-        title: m.title,
-        description: m.description,
-        timeEstimate: m.timeEstimate || '2-3 hours',
-        youtubeVideoId: milestoneVideo.videoId,
-        youtubeVideoTitle: milestoneVideo.title,
-        youtubeVideoUrl: milestoneVideo.url,
-        isCompleted: false,
-        isVideoWatched: false,
-        actionItems: (m.actionItems || []).map((text: string, aIdx: number) => ({
-          id: `act-${goalId}-${idx + 1}-${aIdx + 1}`,
-          text,
-          completed: false
-        })),
-        mentalModels: m.mentalModels || ['First Principles', 'System Invariants']
-      };
-    });
-
-    return {
-      id: goalId,
-      profileId: 'default-user',
-      title: goalTitle,
-      domain: parsed.domain || 'Computer Science & Engineering',
-      targetDuration,
-      difficultyLevel,
-      learningStyle,
-      dailyCommitment,
-      progressPercentage: 0,
-      isCompleted: false,
-      bestVideoTitle: bestVideo.title,
-      bestVideoUrl: bestVideo.url,
-      bestVideoThumbnail: bestVideo.thumbnailUrl,
-      milestones,
-      createdAt: new Date().toISOString()
-    };
-  } catch (error) {
-    console.warn('Using intelligent curated fallback roadmap for goal:', goalTitle);
-    const goalId = 'goal-' + Date.now();
-    const resolution = resolveRoadmapVideosForGoal(goalTitle, [
-      { title: 'Foundational Syntax & Execution Model' },
-      { title: 'Concurrency, Async Runtimes & State Flow' },
-      { title: 'Production Resilience, Caching & Failure Modes' },
-      { title: 'End-to-End System Integration & API Contract' },
-      { title: 'Performance Profiling, Security & Capstone Deployment' },
-    ]);
-    const bestVid = resolution.bestOverallVideo;
-    const m1Vid = resolution.milestoneVideos[0] || bestVid;
-    const m2Vid = resolution.milestoneVideos[1] || bestVid;
-    const m3Vid = resolution.milestoneVideos[2] || bestVid;
-    const m4Vid = resolution.milestoneVideos[3] || bestVid;
-    const m5Vid = resolution.milestoneVideos[4] || bestVid;
-
-    return {
-      id: goalId,
-      profileId: 'default-user',
-      title: goalTitle,
-      domain: 'Systems & AI Engineering',
-      targetDuration,
-      difficultyLevel,
-      learningStyle,
-      dailyCommitment,
-      progressPercentage: 0,
-      isCompleted: false,
-      bestVideoTitle: bestVid.title,
-      bestVideoUrl: bestVid.url,
-      bestVideoThumbnail: bestVid.thumbnailUrl,
-      milestones: [
-        {
-          id: `ms-${goalId}-1`,
-          goalId,
-          dayNumber: 1,
-          title: 'Foundational Syntax & Execution Model',
-          description: `Internalize the core architecture, memory layout, and operational paradigms of ${goalTitle}.`,
-          timeEstimate: '2.5 hours',
-          youtubeVideoId: m1Vid.videoId,
-          youtubeVideoTitle: m1Vid.title,
-          youtubeVideoUrl: m1Vid.url,
-          isCompleted: false,
-          isVideoWatched: false,
-          actionItems: [
-            { id: `act-1-1`, text: `Set up local development toolchain and verify environment`, completed: false },
-            { id: `act-1-2`, text: `Implement fundamental data structures and primitive operations`, completed: false },
-            { id: `act-1-3`, text: `Write unit test coverage for edge condition boundaries`, completed: false }
-          ],
-          mentalModels: ['Zero-Cost Abstractions', 'Predictable Memory Layout']
-        },
-        {
-          id: `ms-${goalId}-2`,
-          goalId,
-          dayNumber: 4,
-          title: 'Concurrency, Async Runtimes & State Flow',
-          description: 'Master async event loops, non-blocking I/O primitives, and channel-based thread synchronization.',
-          timeEstimate: '3 hours',
-          youtubeVideoId: m2Vid.videoId,
-          youtubeVideoTitle: m2Vid.title,
-          youtubeVideoUrl: m2Vid.url,
-          isCompleted: false,
-          isVideoWatched: false,
-          actionItems: [
-            { id: `act-2-1`, text: 'Implement worker pool pattern with cross-thread communication', completed: false },
-            { id: `act-2-2`, text: 'Handle backpressure and cancellation with context signals', completed: false },
-            { id: `act-2-3`, text: 'Benchmark throughput under concurrent simulated load', completed: false }
-          ],
-          mentalModels: ['Actor Model', 'Single Writer Principle']
-        },
-        {
-          id: `ms-${goalId}-3`,
-          goalId,
-          dayNumber: 9,
-          title: 'Production Resilience, Caching & Failure Modes',
-          description: 'Design fault-tolerant architectures with circuit breakers, exponential backoff, and distributed caches.',
-          timeEstimate: '3.5 hours',
-          youtubeVideoId: m3Vid.videoId,
-          youtubeVideoTitle: m3Vid.title,
-          youtubeVideoUrl: m3Vid.url,
-          isCompleted: false,
-          isVideoWatched: false,
-          actionItems: [
-            { id: `act-3-1`, text: 'Implement Redis LRU caching layer with TTL invalidation', completed: false },
-            { id: `act-3-2`, text: 'Build jittered exponential retry policy with circuit breaker', completed: false },
-            { id: `act-3-3`, text: 'Simulate network partition and verify graceful degradation', completed: false }
-          ],
-          mentalModels: ['CAP Theorem Tradeoffs', 'Blast Radius Minimization']
-        },
-        {
-          id: `ms-${goalId}-4`,
-          goalId,
-          dayNumber: 16,
-          title: 'End-to-End System Integration & API Contract',
-          description: 'Assemble the full stack pipeline connecting API layers, persistent storage, and background processing.',
-          timeEstimate: '4 hours',
-          youtubeVideoId: m4Vid.videoId,
-          youtubeVideoTitle: m4Vid.title,
-          youtubeVideoUrl: m4Vid.url,
-          isCompleted: false,
-          isVideoWatched: false,
-          actionItems: [
-            { id: `act-4-1`, text: 'Define strict OpenAPI / gRPC contracts with schema validation', completed: false },
-            { id: `act-4-2`, text: 'Implement database connection pooling and transaction rollbacks', completed: false },
-            { id: `act-4-3`, text: 'Configure structured logging, OpenTelemetry tracing, and metrics', completed: false }
-          ],
-          mentalModels: ['Clean Architecture', 'Idempotent Operations']
-        },
-        {
-          id: `ms-${goalId}-5`,
-          goalId,
-          dayNumber: 25,
-          title: 'Performance Profiling, Security & Capstone Deployment',
-          description: 'Profile CPU/memory flamegraphs, enforce security boundaries, and deploy to production Kubernetes.',
-          timeEstimate: '4.5 hours',
-          youtubeVideoId: m5Vid.videoId,
-          youtubeVideoTitle: m5Vid.title,
-          youtubeVideoUrl: m5Vid.url,
-          isCompleted: false,
-          isVideoWatched: false,
-          actionItems: [
-            { id: `act-5-1`, text: 'Run memory profiler and eliminate allocation bottlenecks', completed: false },
-            { id: `act-5-2`, text: 'Audit dependency CVEs and harden container security contexts', completed: false },
-            { id: `act-5-3`, text: 'Deploy multi-region production cluster with CI/CD automation', completed: false }
-          ],
-          mentalModels: ['Amortized Cost Analysis', 'Defense in Depth']
-        }
-      ],
-      createdAt: new Date().toISOString()
-    };
-  }
+  return await generateCourseRoadmap(
+    intent,
+    targetDuration,
+    learningStyle,
+    dailyCommitment
+  );
 }
 
 // 2. Post-Goal Assessment (Quiz or Exam via Gemini 3.8 Flash)
@@ -568,7 +335,7 @@ Return ONLY valid JSON.`;
         estimatedWeeks: '4 weeks',
         difficulty: 'Advanced',
         skillsGained: ['Raft Consensus', 'Split-Brain Handling', 'Vector Clocks'],
-        curatedVideoUrl: 'https://www.youtube.com/watch?v=m8Icp_Cid5o'
+        curatedVideoUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(domain + ' distributed systems raft consensus tutorial')}`
       },
       {
         id: 'rec-2',
@@ -578,7 +345,7 @@ Return ONLY valid JSON.`;
         estimatedWeeks: '5 weeks',
         difficulty: 'Expert',
         skillsGained: ['eBPF Programs', 'XDP Zero-Copy', 'Linux Perf Flamegraphs'],
-        curatedVideoUrl: 'https://www.youtube.com/watch?v=un6ZyFkqFJU'
+        curatedVideoUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(domain + ' high performance observability masterclass')}`
       },
       {
         id: 'rec-3',
@@ -588,7 +355,7 @@ Return ONLY valid JSON.`;
         estimatedWeeks: '3 weeks',
         difficulty: 'Advanced',
         skillsGained: ['Agentic Workflows', 'Function Calling', 'Vector Graph RAG'],
-        curatedVideoUrl: 'https://www.youtube.com/watch?v=q154F_cWzrg'
+        curatedVideoUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(domain + ' advanced multimodal agentic architecture')}`
       }
     ];
   }
@@ -825,115 +592,37 @@ Provide a crisp, accurate, markdown-formatted answer grounded directly in the fi
   }
 }
 
-// 9. AI Video Suggestions for Any Skill
+// 9. AI Video Suggestions (Dynamic Multi-stage Recommendation Engine)
 export async function suggestVideosAI(
   skill: string,
-  level: string = 'Intermediate'
+  level: string = 'Intermediate',
+  topic?: string,
+  goal?: string,
+  language?: string,
+  contentType?: any
 ): Promise<VideoSuggestion[]> {
-  const prompt = `You are an elite educational video researcher and AI Learning Architect for Progress.
-A learner requested video masterclasses to master this skill or domain:
-Skill / Target Subject: "${skill}"
-Learner Level: "${level}"
+  const recResult = await recommendVideos({
+    skill,
+    topic,
+    level: (['beginner', 'intermediate', 'advanced'].includes(level.toLowerCase()) ? level.toLowerCase() : 'intermediate') as any,
+    goal,
+    language,
+    contentType: contentType || 'course',
+    count: 4
+  });
 
-Recommend 4 to 5 premier, high-yield educational YouTube courses or masterclasses that effectively teach this skill. Pick top respected channels and educators (e.g. freeCodeCamp.org, MIT OpenCourseWare, Stanford, Harvard CS50, Andrej Karpathy, Fireship, The Primeagen, TechWorld with Nana, NeetCode, ByteByteGo, Hussein Nasser, Traversy Media, Derek Banas, StatQuest, etc.).
-
-Cover different pedagogical angles:
-1. Foundation / Fundamentals Bootcamp
-2. Deep Dive Architectural Masterclass
-3. Hands-on Real World Project Build
-4. Production Hardening / Advanced Patterns
-5. Practical Crash Course / Rapid Reference
-
-Return a valid JSON array of objects with this schema:
-[
-  {
-    "title": "Accurate, descriptive title of the tutorial video",
-    "channel": "YouTube Channel / Educator Name",
-    "duration": "e.g. 4h 30m, 2h 15m, 45m",
-    "category": "Foundation" | "Deep Dive" | "Hands-on Project" | "Production Masterclass" | "Crash Course",
-    "searchQuery": "Precise YouTube search query to find this video",
-    "whyRecommended": "1-2 sentence compelling rationale explaining why this video is ideal for learning ${skill}",
-    "keyTopics": ["Topic 1", "Topic 2", "Topic 3"]
-  }
-]
-Return ONLY JSON array.`;
-
-  try {
-    const responseText = await callGemini(
-      'gemini-3.8-flash',
-      prompt,
-      'You are an expert video scout for technical learning. Respond strictly in valid JSON array.',
-      true
-    );
-    const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    const items = Array.isArray(parsed) ? parsed : (parsed.videos || parsed.suggestions || []);
-
-    return items.map((item: any, idx: number) => {
-      const match = buildVideoMatchForQuery(
-        item.searchQuery || item.title || skill,
-        item.title,
-        item.channel,
-        item.duration
-      );
-
-      return {
-        id: `vidsug-${Date.now()}-${idx + 1}`,
-        title: item.title || `${skill} Comprehensive Masterclass`,
-        channel: item.channel || match.channel || 'freeCodeCamp.org',
-        duration: item.duration || match.duration || '2h 30m',
-        url: match.url,
-        videoId: match.videoId,
-        thumbnailUrl: match.thumbnailUrl,
-        category: (['Foundation', 'Deep Dive', 'Hands-on Project', 'Production Masterclass', 'Crash Course'].includes(item.category)
-          ? item.category
-          : 'Deep Dive') as any,
-        whyRecommended: item.whyRecommended || `Essential educational masterclass for mastering core concepts in ${skill}.`,
-        keyTopics: item.keyTopics || ['Fundamentals', 'Implementation', 'Best Practices']
-      };
-    });
-  } catch (err) {
-    console.warn('AI Video suggestion fallback for skill:', skill);
-    const match = resolveBestVideoCourse(skill);
-    return [
-      {
-        id: `vidsug-fallback-1`,
-        title: `${skill} Full Course - Beginner to Advanced`,
-        channel: match.channel || 'freeCodeCamp.org',
-        duration: match.duration || '3h 30m',
-        url: match.url,
-        videoId: match.videoId,
-        thumbnailUrl: match.thumbnailUrl,
-        category: 'Foundation',
-        whyRecommended: `Comprehensive foundational walkthrough covering core syntax, structure, and mental models for ${skill}.`,
-        keyTopics: ['Core Invariants', 'Mental Models', 'Hands-on Examples']
-      },
-      {
-        id: `vidsug-fallback-2`,
-        title: `${skill} Deep Dive: Architecture & Production Systems`,
-        channel: 'Staff Engineering Academy',
-        duration: '2h 15m',
-        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(skill + ' architecture deep dive')}`,
-        videoId: match.videoId,
-        thumbnailUrl: match.thumbnailUrl,
-        category: 'Deep Dive',
-        whyRecommended: `Explores real-world production tradeoffs, memory and concurrency paradigms, and scale bottlenecks.`,
-        keyTopics: ['System Design', 'Performance Tuning', 'Tradeoff Analysis']
-      },
-      {
-        id: `vidsug-fallback-3`,
-        title: `Building Production Projects with ${skill}`,
-        channel: 'Code With Masters',
-        duration: '4h 10m',
-        url: `https://www.youtube.com/results?search_query=${encodeURIComponent('building project with ' + skill)}`,
-        videoId: match.videoId,
-        thumbnailUrl: match.thumbnailUrl,
-        category: 'Hands-on Project',
-        whyRecommended: `Step-by-step project implementation consolidating theory into deployable code artifacts.`,
-        keyTopics: ['Project Architecture', 'Debugging', 'Deployment']
-      }
-    ];
-  }
+  return recResult.videos.map(v => ({
+    id: v.id,
+    title: v.title,
+    channel: v.channel,
+    duration: v.duration,
+    url: v.url,
+    videoId: v.videoId,
+    thumbnailUrl: v.thumbnailUrl,
+    category: v.category,
+    whyRecommended: v.whyRecommended,
+    keyTopics: v.keyTopics
+  }));
 }
 
 // 10. AI Roadmap Copilot Chatbot: Full Roadmap Access & Intelligent Video Replacement

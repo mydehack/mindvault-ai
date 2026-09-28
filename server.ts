@@ -117,7 +117,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/goals/generate' && req.method === 'POST') {
     try {
       const body = await parseJsonBody(req);
-      const { goalTitle, targetDuration, difficultyLevel, learningStyle, dailyCommitment } = body;
+      const { goalTitle, targetDuration, difficultyLevel, learningStyle, dailyCommitment, language } = body;
       if (!goalTitle) {
         sendJson(res, 400, { error: 'goalTitle is required' });
         return;
@@ -128,7 +128,8 @@ const server = http.createServer(async (req, res) => {
         targetDuration || '30 days',
         difficultyLevel || 'Intermediate',
         learningStyle || 'Socratic Deep-Dive',
-        dailyCommitment || '2 hours / day'
+        dailyCommitment || '2 hours / day',
+        language || 'English'
       );
 
       sendJson(res, 200, { success: true, goal });
@@ -143,14 +144,22 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/video/suggest' && req.method === 'POST') {
     try {
       const body = await parseJsonBody(req);
-      const { skill, level } = body;
-      if (!skill) {
-        sendJson(res, 400, { error: 'skill is required' });
+      const { query, skill, topic, level, goal, language, contentType } = body;
+      const targetSkill = (skill || query || '').trim();
+      if (!targetSkill) {
+        sendJson(res, 400, { error: 'skill or query is required' });
         return;
       }
 
-      const suggestions = await suggestVideosAI(skill, level || 'Intermediate');
-      sendJson(res, 200, { success: true, skill, suggestions });
+      const suggestions = await suggestVideosAI(
+        targetSkill,
+        level || 'Intermediate',
+        topic,
+        goal,
+        language || 'English',
+        contentType || 'course'
+      );
+      sendJson(res, 200, { success: true, skill: targetSkill, suggestions });
     } catch (err: any) {
       console.error('Video suggest error:', err);
       sendJson(res, 500, { error: err.message || 'Failed to suggest videos' });
