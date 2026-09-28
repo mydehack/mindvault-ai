@@ -621,6 +621,8 @@ export async function suggestVideosAI(
     thumbnailUrl: v.thumbnailUrl,
     category: v.category,
     whyRecommended: v.whyRecommended,
+    recommendationReason: v.recommendationReason || v.whyRecommended,
+    source: v.source,
     keyTopics: v.keyTopics
   }));
 }

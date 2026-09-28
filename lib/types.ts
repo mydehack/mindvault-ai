@@ -165,6 +165,8 @@ export interface VideoSuggestion {
   thumbnailUrl: string;
   category: 'Foundation' | 'Deep Dive' | 'Hands-on Project' | 'Production Masterclass' | 'Crash Course';
   whyRecommended: string;
+  recommendationReason?: string;
+  source?: 'youtube_search' | 'approved_external_source' | 'user_saved' | 'hardcoded';
   keyTopics: string[];
 }
 
