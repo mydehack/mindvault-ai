@@ -1,5 +1,5 @@
-import { Goal, Milestone, QuizAssessment, CourseRecommendation, PersonaType, VideoSuggestion } from './types';
-import { resolveBestVideoCourse, buildVideoMatchForQuery } from './youtube-resolver';
+import { Goal, Milestone, QuizAssessment, CourseRecommendation, PersonaType, VideoSuggestion, RoadmapVideoReplacement, RoadmapCopilotMessage } from './types';
+import { resolveBestVideoCourse, buildVideoMatchForQuery, resolveRoadmapVideosForGoal } from './youtube-resolver';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
@@ -121,6 +121,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
 
     const goalId = 'goal-' + Date.now();
 
+    // Multi-stage unique video resolution: Guarantees 100% unique, non-repeating video for every milestone
+    const videoResolution = resolveRoadmapVideosForGoal(goalTitle, parsed.milestones || []);
+
     // AI suggested best overall video
     const bestVideo = parsed.bestOverallVideo?.title
       ? buildVideoMatchForQuery(
@@ -129,18 +132,10 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           parsed.bestOverallVideo.channel,
           parsed.bestOverallVideo.duration
         )
-      : resolveBestVideoCourse(goalTitle);
+      : videoResolution.bestOverallVideo;
 
     const milestones: Milestone[] = (parsed.milestones || []).map((m: any, idx: number) => {
-      const vidMeta = m.suggestedVideo || {};
-      const milestoneVideo = vidMeta.title
-        ? buildVideoMatchForQuery(
-            m.title + ' ' + (vidMeta.searchQuery || goalTitle),
-            vidMeta.title,
-            vidMeta.channel,
-            vidMeta.duration
-          )
-        : resolveBestVideoCourse(m.title + ' ' + (m.videoSearchQuery || goalTitle));
+      const milestoneVideo = videoResolution.milestoneVideos[idx] || resolveBestVideoCourse(m.title);
 
       return {
         id: `ms-${goalId}-${idx + 1}`,
@@ -183,6 +178,20 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
   } catch (error) {
     console.warn('Using intelligent curated fallback roadmap for goal:', goalTitle);
     const goalId = 'goal-' + Date.now();
+    const resolution = resolveRoadmapVideosForGoal(goalTitle, [
+      { title: 'Foundational Syntax & Execution Model' },
+      { title: 'Concurrency, Async Runtimes & State Flow' },
+      { title: 'Production Resilience, Caching & Failure Modes' },
+      { title: 'End-to-End System Integration & API Contract' },
+      { title: 'Performance Profiling, Security & Capstone Deployment' },
+    ]);
+    const bestVid = resolution.bestOverallVideo;
+    const m1Vid = resolution.milestoneVideos[0] || bestVid;
+    const m2Vid = resolution.milestoneVideos[1] || bestVid;
+    const m3Vid = resolution.milestoneVideos[2] || bestVid;
+    const m4Vid = resolution.milestoneVideos[3] || bestVid;
+    const m5Vid = resolution.milestoneVideos[4] || bestVid;
+
     return {
       id: goalId,
       profileId: 'default-user',
@@ -194,9 +203,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
       dailyCommitment,
       progressPercentage: 0,
       isCompleted: false,
-      bestVideoTitle: bestVideo.title,
-      bestVideoUrl: bestVideo.url,
-      bestVideoThumbnail: bestVideo.thumbnailUrl,
+      bestVideoTitle: bestVid.title,
+      bestVideoUrl: bestVid.url,
+      bestVideoThumbnail: bestVid.thumbnailUrl,
       milestones: [
         {
           id: `ms-${goalId}-1`,
@@ -205,9 +214,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           title: 'Foundational Syntax & Execution Model',
           description: `Internalize the core architecture, memory layout, and operational paradigms of ${goalTitle}.`,
           timeEstimate: '2.5 hours',
-          youtubeVideoId: bestVideo.videoId,
-          youtubeVideoTitle: bestVideo.title,
-          youtubeVideoUrl: bestVideo.url,
+          youtubeVideoId: m1Vid.videoId,
+          youtubeVideoTitle: m1Vid.title,
+          youtubeVideoUrl: m1Vid.url,
           isCompleted: false,
           isVideoWatched: false,
           actionItems: [
@@ -224,9 +233,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           title: 'Concurrency, Async Runtimes & State Flow',
           description: 'Master async event loops, non-blocking I/O primitives, and channel-based thread synchronization.',
           timeEstimate: '3 hours',
-          youtubeVideoId: bestVideo.videoId,
-          youtubeVideoTitle: bestVideo.title,
-          youtubeVideoUrl: bestVideo.url,
+          youtubeVideoId: m2Vid.videoId,
+          youtubeVideoTitle: m2Vid.title,
+          youtubeVideoUrl: m2Vid.url,
           isCompleted: false,
           isVideoWatched: false,
           actionItems: [
@@ -243,9 +252,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           title: 'Production Resilience, Caching & Failure Modes',
           description: 'Design fault-tolerant architectures with circuit breakers, exponential backoff, and distributed caches.',
           timeEstimate: '3.5 hours',
-          youtubeVideoId: bestVideo.videoId,
-          youtubeVideoTitle: bestVideo.title,
-          youtubeVideoUrl: bestVideo.url,
+          youtubeVideoId: m3Vid.videoId,
+          youtubeVideoTitle: m3Vid.title,
+          youtubeVideoUrl: m3Vid.url,
           isCompleted: false,
           isVideoWatched: false,
           actionItems: [
@@ -262,9 +271,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           title: 'End-to-End System Integration & API Contract',
           description: 'Assemble the full stack pipeline connecting API layers, persistent storage, and background processing.',
           timeEstimate: '4 hours',
-          youtubeVideoId: bestVideo.videoId,
-          youtubeVideoTitle: bestVideo.title,
-          youtubeVideoUrl: bestVideo.url,
+          youtubeVideoId: m4Vid.videoId,
+          youtubeVideoTitle: m4Vid.title,
+          youtubeVideoUrl: m4Vid.url,
           isCompleted: false,
           isVideoWatched: false,
           actionItems: [
@@ -281,9 +290,9 @@ Create 5 comprehensive, logically sequential milestones covering the full ${targ
           title: 'Performance Profiling, Security & Capstone Deployment',
           description: 'Profile CPU/memory flamegraphs, enforce security boundaries, and deploy to production Kubernetes.',
           timeEstimate: '4.5 hours',
-          youtubeVideoId: bestVideo.videoId,
-          youtubeVideoTitle: bestVideo.title,
-          youtubeVideoUrl: bestVideo.url,
+          youtubeVideoId: m5Vid.videoId,
+          youtubeVideoTitle: m5Vid.title,
+          youtubeVideoUrl: m5Vid.url,
           isCompleted: false,
           isVideoWatched: false,
           actionItems: [
@@ -830,5 +839,165 @@ Return ONLY JSON array.`;
         keyTopics: ['Project Architecture', 'Debugging', 'Deployment']
       }
     ];
+  }
+}
+
+// 10. AI Roadmap Copilot Chatbot: Full Roadmap Access & Intelligent Video Replacement
+export async function evaluateRoadmapCopilotAI(
+  goal: Goal,
+  userMessage: string,
+  chatHistory: { role: string; content: string }[] = []
+): Promise<{
+  assistantMessage: string;
+  isIssueSignificant: boolean;
+  videoReplacement?: RoadmapVideoReplacement;
+}> {
+  const milestonesSummary = (goal.milestones || []).map((m, idx) => `
+Milestone ${idx + 1} (ID: ${m.id}):
+- Title: "${m.title}"
+- Description: "${m.description}"
+- Current Assigned Video: "${m.youtubeVideoTitle}" (ID: ${m.youtubeVideoId})
+- Time Estimate: "${m.timeEstimate}"
+- Tasks: ${m.actionItems.map(a => a.text).join('; ')}
+`).join('\n');
+
+  const prompt = `You are the Progress AI Roadmap Copilot. You have FULL READ AND WRITE ACCESS to the learner's active roadmap.
+
+ACTIVE LEARNER ROADMAP:
+Goal: "${goal.title}"
+Domain: "${goal.domain}"
+Skill Level: "${goal.difficultyLevel}"
+Daily Time Budget: "${goal.dailyCommitment || '2 hours / day'}"
+Curriculum Duration: "${goal.targetDuration}"
+Current Progress: ${goal.progressPercentage}%
+
+CURRENT MILESTONES & ASSIGNED VIDEOS:
+${milestonesSummary}
+
+USER'S MESSAGE:
+"${userMessage}"
+
+PREVIOUS CHAT CONTEXT:
+${chatHistory.slice(-4).map(h => `${h.role}: ${h.content}`).join('\n')}
+
+PEDAGOGICAL EVALUATION PROTOCOL:
+1. Determine if the user is asking to change or improve a video for a milestone, or reporting a difficulty/dissatisfaction with a video (or asking about their curriculum).
+2. Evaluate if the reported issue is SIGNIFICANT for a learner. Common significant issues include:
+   - Pacing too fast or overwhelming cognitive load
+   - Missing prerequisites (video assumes knowledge the learner lacks)
+   - Practicality mismatch (wants hands-on coding instead of lecture slides, or vice versa)
+   - Time budget mismatch (video is too long for the learner's daily schedule)
+   - Deprecated syntax / outdated library versions
+   - Learning style preference (e.g. prefers Socratic, project-oriented, or visual deep-dive)
+   - Video channel preference (e.g. wants freeCodeCamp, MIT, Fireship, or TechWorld with Nana)
+3. If the user's issue or request is significant and calls for a video change:
+   - "isIssueSignificant": true
+   - Identify the exact target milestone (e.g. "ms-..." from the roadmap). If not explicitly numbered, infer from the topic or default to Milestone 1 or the most relevant milestone.
+   - Scout and select a superior replacement YouTube course/video from premier educators (freeCodeCamp, MIT OpenCourseWare, Fireship, Andrej Karpathy, Primeagen, TechWorld with Nana, NeetCode, Traversy Media, etc.) that directly resolves the learner's complaint!
+   - In "assistantMessage", validate the learner's experience with empathy, explain why this problem is common, and confirm that you have replaced the video in their roadmap with the new masterclass.
+   - Return "videoReplacement" with the exact details.
+4. If the user is just asking a question about their roadmap, milestones, or conceptual guidance:
+   - "isIssueSignificant": false
+   - Provide an insightful, structured response referencing their specific milestones and daily schedule.
+
+Return a valid JSON object matching this structure:
+{
+  "isIssueSignificant": true | false,
+  "assistantMessage": "Comprehensive response explaining your assessment and guidance...",
+  "videoReplacement": {
+    "milestoneId": "ms-...",
+    "milestoneTitle": "Title of milestone being updated",
+    "oldVideoTitle": "Previous video title",
+    "newVideoTitle": "New replacement video title",
+    "newVideoChannel": "Channel name",
+    "newVideoDuration": "Duration (e.g. 2h 15m)",
+    "newVideoUrl": "https://www.youtube.com/watch?v=... or search url",
+    "newVideoId": "11-character youtube id if known, else standard id",
+    "newVideoThumbnail": "https://img.youtube.com/vi/ID/hqdefault.jpg",
+    "reasoning": "Clear explanation of why this replacement solves the learner's problem"
+  }
+}
+Return ONLY JSON.`;
+
+  try {
+    const responseText = await callGemini(
+      'gemini-3.8-flash',
+      prompt,
+      'You are the expert Progress AI Roadmap Copilot. Respond strictly in valid JSON.',
+      true
+    );
+    const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (parsed.isIssueSignificant && parsed.videoReplacement?.milestoneId) {
+      const rep = parsed.videoReplacement;
+      const targetM = goal.milestones.find(m => m.id === rep.milestoneId) || goal.milestones[0];
+      const match = buildVideoMatchForQuery(
+        rep.newVideoTitle || targetM.title,
+        rep.newVideoTitle,
+        rep.newVideoChannel,
+        rep.newVideoDuration,
+        rep.newVideoId
+      );
+
+      return {
+        isIssueSignificant: true,
+        assistantMessage: parsed.assistantMessage || `I evaluated your feedback. This is a common challenge for learners at this stage. I have updated Milestone "${targetM.title}" with a more suitable video: "${match.title}".`,
+        videoReplacement: {
+          milestoneId: targetM.id,
+          milestoneTitle: targetM.title,
+          oldVideoTitle: targetM.youtubeVideoTitle || 'Previous Video',
+          newVideoTitle: match.title,
+          newVideoChannel: match.channel,
+          newVideoDuration: match.duration,
+          newVideoUrl: match.url,
+          newVideoId: match.videoId,
+          newVideoThumbnail: match.thumbnailUrl,
+          reasoning: rep.reasoning || `Replaced with a better suited tutorial addressing your learning preference.`
+        }
+      };
+    }
+
+    return {
+      isIssueSignificant: false,
+      assistantMessage: parsed.assistantMessage || "I've reviewed your active roadmap. Let me know if you'd like to adjust any milestone tasks or replace any video tutorials!"
+    };
+  } catch (err) {
+    console.warn('Roadmap Copilot AI fallback error:', err);
+    const lower = userMessage.toLowerCase();
+    const wantsChange = lower.includes('change') || lower.includes('replace') || lower.includes('switch') || lower.includes('different') || lower.includes('better') || lower.includes('too fast') || lower.includes('too hard') || lower.includes('too long');
+
+    if (wantsChange && goal.milestones && goal.milestones.length > 0) {
+      let mIdx = 0;
+      if (lower.includes('milestone 2') || lower.includes('ms 2') || lower.includes('step 2')) mIdx = 1;
+      else if (lower.includes('milestone 3') || lower.includes('ms 3') || lower.includes('step 3')) mIdx = 2;
+      else if (lower.includes('milestone 4') || lower.includes('ms 4') || lower.includes('step 4')) mIdx = 3;
+      else if (lower.includes('milestone 5') || lower.includes('ms 5') || lower.includes('step 5')) mIdx = 4;
+
+      const targetM = goal.milestones[mIdx] || goal.milestones[0];
+      const fallbackVid = resolveBestVideoCourse(targetM.title + ' beginner friendly project tutorial');
+
+      return {
+        isIssueSignificant: true,
+        assistantMessage: `I analyzed your feedback regarding "${targetM.title}". Pacing and prerequisite mismatches are among the most common friction points for learners. I have updated this milestone's video to "${fallbackVid.title}" by ${fallbackVid.channel}, which provides clearer, step-by-step guidance.`,
+        videoReplacement: {
+          milestoneId: targetM.id,
+          milestoneTitle: targetM.title,
+          oldVideoTitle: targetM.youtubeVideoTitle || 'Previous Video',
+          newVideoTitle: fallbackVid.title,
+          newVideoChannel: fallbackVid.channel,
+          newVideoDuration: fallbackVid.duration,
+          newVideoUrl: fallbackVid.url,
+          newVideoId: fallbackVid.videoId,
+          newVideoThumbnail: fallbackVid.thumbnailUrl,
+          reasoning: 'Replaced with a hands-on, high-clarity alternative addressing your specific learner feedback.'
+        }
+      };
+    }
+
+    return {
+      isIssueSignificant: false,
+      assistantMessage: `I have full access to your "${goal.title}" roadmap with ${goal.milestones?.length || 0} milestones. You can ask me to explain any milestone, adjust study pacing, or replace any video if it feels too fast, theoretical, or outdated!`
+    };
   }
 }

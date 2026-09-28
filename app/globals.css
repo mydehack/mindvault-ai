@@ -63,6 +63,26 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Luxury Obsidian & Gold Accents */
+.luxury-glass {
+  background: linear-gradient(135deg, rgba(20, 24, 38, 0.7) 0%, rgba(10, 12, 20, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(212, 175, 55, 0.1);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFF6D3 0%, #D4AF37 50%, #AA771C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
 /* Light / Day Mode Overrides */
 html:not(.dark) body {
   background-color: #f8fafc;
@@ -73,6 +93,12 @@ html:not(.dark) .glass-panel {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(15, 23, 42, 0.1);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .luxury-glass {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(180, 140, 40, 0.3);
+  box-shadow: 0 8px 30px rgba(180, 140, 40, 0.1);
 }
 
 html:not(.dark) .bg-vault-card {

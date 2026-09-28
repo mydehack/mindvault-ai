@@ -74,17 +74,17 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-8 overflow-hidden bg-background text-foreground transition-colors duration-300">
       {/* Dynamic Ambient Background Glows */}
-      <div className="pointer-events-none absolute -top-48 -left-48 size-[600px] rounded-full bg-indigo-600/15 blur-[160px]" />
-      <div className="pointer-events-none absolute -bottom-48 -right-48 size-[600px] rounded-full bg-cyan-600/15 blur-[160px]" />
-      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 size-[450px] rounded-full bg-violet-600/10 blur-[140px]" />
+      <div className="pointer-events-none absolute -top-48 -left-48 size-[600px] rounded-full bg-amber-500/10 blur-[160px]" />
+      <div className="pointer-events-none absolute -bottom-48 -right-48 size-[600px] rounded-full bg-indigo-600/15 blur-[160px]" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 size-[450px] rounded-full bg-amber-500/5 blur-[140px]" />
 
       {/* Top Header with User Badge & Theme Toggle */}
       <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
         <div className="flex items-center gap-3">
-          <img src={user.avatarUrl} alt={user.fullName} className="size-9 rounded-xl border border-vault-border bg-slate-900/60 p-1" />
+          <img src={user.avatarUrl} alt={user.fullName} className="size-9 rounded-xl border border-amber-500/25 bg-slate-900/80 p-1" />
           <div>
-            <div className="text-xs font-semibold text-foreground/80">Welcome, {user.fullName}</div>
-            <div className="text-[11px] text-foreground/50">{user.role}</div>
+            <div className="text-xs font-bold text-foreground/90">Welcome, {user.fullName}</div>
+            <div className="text-[11px] text-amber-400/80 font-medium">{user.role}</div>
           </div>
         </div>
         <div className="flex items-center gap-2.5">
@@ -92,10 +92,10 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
             <button
               type="button"
               onClick={onOpenTutorial}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-semibold text-amber-300 transition-all hover:scale-105 active:scale-95 shadow-sm"
               title="Open Interactive Tutorial Tour"
             >
-              <Sparkles className="size-3.5 text-indigo-400" />
+              <Sparkles className="size-3.5 text-amber-400" />
               <span>Tutorial Tour</span>
             </button>
           )}
@@ -108,25 +108,25 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-2xl rounded-3xl border border-vault-border bg-vault-card/85 backdrop-blur-2xl p-8 sm:p-12 shadow-2xl shadow-indigo-950/25"
+        className="relative z-10 w-full max-w-2xl rounded-3xl border border-amber-500/25 bg-gradient-to-b from-[#10131F] via-[#0A0C14] to-[#07090F] backdrop-blur-2xl p-8 sm:p-12 shadow-2xl shadow-black/80"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Target className="size-3.5" />
-            <span>AI Goal-to-Action Generator</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
+            <Sparkles className="size-3.5 text-amber-400" />
+            <span>AI Goal-to-Action Generator • Gemini 3.8</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            What do you want to <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">master</span>?
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+            What do you want to <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">master</span>?
           </h1>
-          <p className="mt-2 text-sm text-foreground/60 max-w-md mx-auto">
-            Input any engineering topic or target. Gemini 3.8 Flash will structure milestone checkpoints, action checklists, and curate public YouTube masterclasses.
+          <p className="mt-2 text-xs sm:text-sm text-foreground/60 max-w-md mx-auto leading-relaxed">
+            Input any engineering skill. Gemini 3.8 Flash will structure milestone checkpoints, action checklists, and assign stage-matched YouTube masterclasses with real-time Copilot assistance.
           </p>
         </div>
 
         {/* 1-Click Starter Chips */}
         <div className="mb-6">
-          <div className="text-xs font-medium text-foreground/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="text-xs font-bold text-amber-300/80 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
             <Sparkles className="size-3 text-amber-400" />
             <span>High-Yield Starter Presets</span>
           </div>
@@ -138,8 +138,8 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
                 onClick={() => handleChipClick(chip.title, chip.duration)}
                 className={`text-xs px-3 py-1.5 rounded-xl border transition-all text-left ${
                   goalTitle === chip.title
-                    ? "border-indigo-500 bg-indigo-500/20 text-indigo-300 font-semibold shadow-sm"
-                    : "border-vault-border bg-slate-900/40 text-foreground/75 hover:bg-slate-800/60 hover:text-foreground"
+                    ? "border-amber-500 bg-amber-500/20 text-amber-200 font-bold shadow-md shadow-amber-500/10"
+                    : "border-white/10 bg-slate-900/50 text-foreground/75 hover:bg-slate-800/70 hover:text-foreground"
                 }`}
               >
                 {chip.label}
@@ -250,35 +250,35 @@ export const InitialGoalEntry: React.FC<InitialGoalEntryProps> = ({
             <button
               type="submit"
               disabled={isGenerating || !goalTitle.trim()}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 py-4 px-6 text-sm font-bold text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none transition-all"
+              className="group relative flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 py-4 px-6 text-sm font-black text-slate-950 shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
             >
               {isGenerating ? (
                 <>
-                  <div className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Synthesizing Curriculum & Curating Video Masterclasses with Gemini 3.8...</span>
+                  <div className="size-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                  <span>Synthesizing Curriculum & Curating Unique Stage Videos with Gemini 3.8...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="size-4 text-amber-300" />
-                  <span>Generate Roadmap & AI Video Suggestions</span>
-                  <ArrowRight className="size-4 group-hover:translate-x-1.5 transition-transform" />
+                  <Sparkles className="size-4 text-slate-950" />
+                  <span>Generate Roadmap & AI Stage Videos</span>
+                  <ArrowRight className="size-4 group-hover:translate-x-1.5 transition-transform text-slate-950" />
                 </>
               )}
             </button>
 
             {/* AI Video Scouting Badge */}
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-foreground/50 pt-0.5">
-              <Sparkles className="size-3 text-red-400" />
-              <span>Includes AI-Curated YouTube Masterclasses & Milestone Video Labs for your skill</span>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-amber-300/70 pt-0.5 font-medium">
+              <Sparkles className="size-3 text-amber-400" />
+              <span>Includes AI-Curated YouTube Masterclasses & Omni-Access Roadmap Copilot</span>
             </div>
 
             {/* Instant Curated Load button */}
             <button
               type="button"
               onClick={onInstantCuratedLoad}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-vault-border bg-slate-900/40 hover:bg-slate-800/60 py-2.5 px-4 text-xs font-medium text-foreground/70 hover:text-foreground transition-all"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 py-2.5 px-4 text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer"
             >
-              <Zap className="size-3.5 text-cyan-400" />
+              <Zap className="size-3.5 text-amber-400" />
               <span>Instant Load: Pre-Built Master Rust & Async Roadmap</span>
             </button>
           </div>

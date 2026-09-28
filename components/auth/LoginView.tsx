@@ -67,9 +67,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-background text-foreground transition-colors duration-300">
       {/* Background Gradient Mesh & Floating Orbs */}
-      <div className="pointer-events-none absolute -top-40 -left-40 size-[500px] rounded-full bg-indigo-600/20 blur-[130px]" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 size-[500px] rounded-full bg-cyan-500/15 blur-[140px]" />
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-purple-600/10 blur-[160px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 size-[500px] rounded-full bg-amber-500/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 size-[500px] rounded-full bg-indigo-600/15 blur-[140px]" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-amber-500/5 blur-[160px]" />
 
       {/* Top Header with Theme Toggle */}
       <div className="absolute top-6 right-6 flex items-center gap-3 z-20">
@@ -81,20 +81,20 @@ export const LoginView: React.FC<LoginViewProps> = ({
         initial={{ opacity: 0, y: 25, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-lg rounded-3xl border border-vault-border bg-vault-card/85 backdrop-blur-2xl p-8 sm:p-10 shadow-2xl shadow-indigo-950/20"
+        className="relative z-10 w-full max-w-lg rounded-3xl border border-amber-500/25 bg-gradient-to-b from-[#10131F] via-[#0A0C14] to-[#07090F] backdrop-blur-2xl p-8 sm:p-10 shadow-2xl shadow-black/80"
       >
         {/* Logo and Tagline */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="flex items-center justify-center size-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 p-0.5 shadow-lg shadow-indigo-500/30 mb-4">
-            <div className="flex items-center justify-center size-full rounded-2xl bg-slate-950/80">
-              <Brain className="size-8 text-cyan-400" />
+          <div className="flex items-center justify-center size-16 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-600 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 mb-4">
+            <div className="flex items-center justify-center size-full rounded-2xl bg-[#0A0C14]">
+              <Brain className="size-8 text-amber-300" />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-3xl font-black tracking-tight text-foreground">
               Progress
             </span>
-            <span className="rounded-lg bg-indigo-500/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-400 border border-indigo-500/30">
+            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
               AI OS
             </span>
           </div>
@@ -108,8 +108,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1.5">
-              <User className="size-3.5 text-indigo-400" /> Full Name
+            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-300/80 mb-1.5">
+              <User className="size-3.5 text-amber-400" /> Full Name
             </label>
             <input
               type="text"
@@ -185,16 +185,16 @@ export const LoginView: React.FC<LoginViewProps> = ({
           <div className="pt-2 space-y-3">
             <button
               type="submit"
-              className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 py-3.5 px-4 font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="group relative flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 py-3.5 px-4 font-black text-slate-950 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
             >
               <span>Initialize Progress Profile</span>
-              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform text-slate-950" />
             </button>
 
             <button
               type="button"
               onClick={handleQuickDemo}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-vault-border bg-slate-900/40 hover:bg-slate-800/60 py-3 px-4 text-xs font-medium text-foreground/80 hover:text-foreground transition-all"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 py-3 px-4 text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer"
             >
               <Sparkles className="size-3.5 text-amber-400" />
               <span>Instant 1-Click Demo Login (Pardhu)</span>

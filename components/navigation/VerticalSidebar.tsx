@@ -60,41 +60,41 @@ export const VerticalSidebar: React.FC<VerticalSidebarProps> = ({
   ];
 
   return (
-    <aside className="sticky top-0 h-screen w-64 flex-shrink-0 flex flex-col justify-between border-r border-vault-border bg-vault-card/90 backdrop-blur-2xl p-4 z-30 transition-colors duration-300">
+    <aside className="sticky top-0 h-screen w-64 flex-shrink-0 flex flex-col justify-between border-r border-amber-500/20 bg-[#0A0C14]/90 backdrop-blur-2xl p-4 z-30 transition-colors duration-300">
       {/* Top Header Logo */}
       <div className="space-y-6">
         <div className="flex items-center gap-3 px-2 pt-2">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 p-0.5 shadow-md shadow-indigo-500/25">
-            <div className="flex items-center justify-center size-full rounded-xl bg-slate-950/80">
-              <Brain className="size-5 text-cyan-400" />
+          <div className="flex items-center justify-center size-10 rounded-xl bg-gradient-to-tr from-amber-400 via-amber-600 to-amber-700 p-0.5 shadow-md shadow-amber-500/20">
+            <div className="flex items-center justify-center size-full rounded-xl bg-[#0A0C14]">
+              <Brain className="size-5 text-amber-300" />
             </div>
           </div>
           <div>
             <div className="flex items-center gap-1.5 font-black text-base tracking-tight text-foreground">
               <span>Progress</span>
-              <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded border border-indigo-500/30">
+              <span className="text-[10px] uppercase font-black text-amber-300 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">
                 AI
               </span>
             </div>
-            <div className="text-[11px] text-foreground/50 font-medium">Knowledge & Goal OS</div>
+            <div className="text-[11px] text-amber-400/70 font-semibold">Omni-Roadmap AI OS</div>
           </div>
         </div>
 
         {/* Quick Goal Action */}
         <button
           onClick={onNewGoal}
-          className="group flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-indigo-600/90 to-violet-600/90 hover:from-indigo-600 hover:to-violet-600 px-3.5 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
+          className="group flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 px-3.5 py-2.5 text-xs font-black text-slate-950 shadow-md shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
         >
           <div className="flex items-center gap-2">
-            <PlusCircle className="size-4" />
+            <PlusCircle className="size-4 text-slate-950" />
             <span>Create New Goal</span>
           </div>
-          <ChevronRight className="size-3.5 text-white/70 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronRight className="size-3.5 text-slate-950/80 group-hover:translate-x-0.5 transition-transform" />
         </button>
 
         {/* Navigation Items (Vertical) */}
         <nav className="space-y-1">
-          <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-foreground/40">
+          <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-amber-300/60">
             Core Modules
           </div>
           {navItems.map((item) => {
@@ -104,20 +104,20 @@ export const VerticalSidebar: React.FC<VerticalSidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onSelectView(item.id)}
-                className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
+                className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-indigo-500/15 text-indigo-400 font-semibold border border-indigo-500/30 shadow-sm"
+                    ? "bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-sm"
                     : "text-foreground/70 hover:bg-slate-800/40 hover:text-foreground"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebarActivePill"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r bg-indigo-500"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r bg-amber-400 shadow-sm shadow-amber-400"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <Icon className={`size-4 ${isActive ? "text-indigo-400" : "text-foreground/60 group-hover:text-foreground"}`} />
+                <Icon className={`size-4 ${isActive ? "text-amber-300" : "text-foreground/60 group-hover:text-foreground"}`} />
                 <span>{item.label}</span>
               </button>
             );

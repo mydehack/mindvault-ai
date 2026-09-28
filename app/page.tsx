@@ -17,6 +17,7 @@ import { ProfileModal } from "@/components/modals/ProfileModal";
 import { VideoStudyModal } from "@/components/modals/VideoStudyModal";
 import { PostGoalAssessmentModal } from "@/components/modals/PostGoalAssessmentModal";
 import { TutorialModal } from "@/components/modals/TutorialModal";
+import { RoadmapCopilotModal } from "@/components/modals/RoadmapCopilotModal";
 import { generateRoadmapAI } from "@/lib/gemini";
 import confetti from "canvas-confetti";
 
@@ -71,6 +72,8 @@ export default function ProgressApp() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [copilotInitialPrompt, setCopilotInitialPrompt] = useState<string | undefined>(undefined);
   const [videoModalMilestone, setVideoModalMilestone] = useState<Milestone | null>(null);
 
   // Data Stores
@@ -164,6 +167,39 @@ export default function ProgressApp() {
     setCurrentGoal(null);
     localStorage.removeItem("progress_goal");
     localStorage.removeItem("mindvault_goal");
+  };
+
+  const handleOpenCopilot = (prompt?: string) => {
+    setCopilotInitialPrompt(prompt);
+    setIsCopilotOpen(true);
+  };
+
+  const handleUpdateMilestoneVideo = (
+    milestoneId: string,
+    newVideoData: {
+      youtubeVideoId: string;
+      youtubeVideoTitle: string;
+      youtubeVideoUrl: string;
+    }
+  ) => {
+    if (!currentGoal) return;
+    const updatedMilestones = currentGoal.milestones.map((m) => {
+      if (m.id === milestoneId) {
+        return {
+          ...m,
+          youtubeVideoId: newVideoData.youtubeVideoId,
+          youtubeVideoTitle: newVideoData.youtubeVideoTitle,
+          youtubeVideoUrl: newVideoData.youtubeVideoUrl,
+        };
+      }
+      return m;
+    });
+    const updatedGoal: Goal = {
+      ...currentGoal,
+      milestones: updatedMilestones,
+    };
+    setCurrentGoal(updatedGoal);
+    localStorage.setItem("progress_goal", JSON.stringify(updatedGoal));
   };
 
   // Milestone action checkbox toggle & progress calculation
@@ -385,6 +421,7 @@ export default function ProgressApp() {
               onOpenVideoStudy={(m) => setVideoModalMilestone(m)}
               onOpenAssessment={() => setIsAssessmentOpen(true)}
               onOpenVideoLab={() => setActiveView("video")}
+              onOpenCopilot={handleOpenCopilot}
             />
           )}
 
@@ -395,6 +432,7 @@ export default function ProgressApp() {
               onOpenVideoStudy={(m) => setVideoModalMilestone(m)}
               onOpenAssessment={() => setIsAssessmentOpen(true)}
               onOpenVideoLab={() => setActiveView("video")}
+              onOpenCopilot={handleOpenCopilot}
             />
           )}
 
@@ -467,6 +505,21 @@ export default function ProgressApp() {
         goal={currentGoal}
         onEnrollNewCourse={handleEnrollNewCourse}
       />
+
+      {/* Roadmap AI Copilot Chatbot Modal with Full Roadmap Access */}
+      {currentGoal && (
+        <RoadmapCopilotModal
+          isOpen={isCopilotOpen}
+          onClose={() => {
+            setIsCopilotOpen(false);
+            setCopilotInitialPrompt(undefined);
+          }}
+          goal={currentGoal}
+          onUpdateMilestoneVideo={handleUpdateMilestoneVideo}
+          initialPrompt={copilotInitialPrompt}
+          onOpenVideoStudy={(m) => setVideoModalMilestone(m)}
+        />
+      )}
     </div>
   );
 }

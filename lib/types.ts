@@ -167,3 +167,25 @@ export interface VideoSuggestion {
   whyRecommended: string;
   keyTopics: string[];
 }
+
+export interface RoadmapVideoReplacement {
+  milestoneId: string;
+  milestoneTitle: string;
+  oldVideoTitle: string;
+  newVideoTitle: string;
+  newVideoChannel: string;
+  newVideoDuration: string;
+  newVideoUrl: string;
+  newVideoId: string;
+  newVideoThumbnail: string;
+  reasoning: string;
+}
+
+export interface RoadmapCopilotMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  videoReplacement?: RoadmapVideoReplacement;
+  isIssueSignificant?: boolean;
+}
