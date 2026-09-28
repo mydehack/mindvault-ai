@@ -2,7 +2,7 @@ import http from 'http';
 import {
   evaluateRoadmapCopilotAI,
   generateRoadmapAI,
-  suggestVideosForSkillAI,
+  suggestVideosAI,
   generatePostGoalQuiz,
   generateFollowUpCourses,
   mentorDialogueAI,
@@ -143,13 +143,13 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/video/suggest' && req.method === 'POST') {
     try {
       const body = await parseJsonBody(req);
-      const { skill } = body;
+      const { skill, level } = body;
       if (!skill) {
         sendJson(res, 400, { error: 'skill is required' });
         return;
       }
 
-      const suggestions = await suggestVideosForSkillAI(skill);
+      const suggestions = await suggestVideosAI(skill, level || 'Intermediate');
       sendJson(res, 200, { success: true, skill, suggestions });
     } catch (err: any) {
       console.error('Video suggest error:', err);
