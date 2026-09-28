@@ -144,13 +144,39 @@ export default function ProgressApp() {
     dailyCommitment: string = "2 hours / day"
   ) => {
     try {
-      const goal = await generateRoadmapAI(
-        goalTitle,
-        duration,
-        level,
-        userProfile?.learningStyle || "Socratic Deep-Dive",
-        dailyCommitment
-      );
+      let goal: Goal | null = null;
+      try {
+        const res = await fetch("/api/goals/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            goalTitle,
+            targetDuration: duration,
+            difficultyLevel: level,
+            learningStyle: userProfile?.learningStyle || "Socratic Deep-Dive",
+            dailyCommitment
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.goal) {
+            goal = data.goal;
+          }
+        }
+      } catch (apiErr) {
+        console.warn("API route /api/goals/generate unreachable, falling back to local engine:", apiErr);
+      }
+
+      if (!goal) {
+        goal = await generateRoadmapAI(
+          goalTitle,
+          duration,
+          level,
+          userProfile?.learningStyle || "Socratic Deep-Dive",
+          dailyCommitment
+        );
+      }
+
       setCurrentGoal(goal);
       localStorage.setItem("progress_goal", JSON.stringify(goal));
       setActiveView("dashboard");

@@ -582,39 +582,51 @@ export function resolveRoadmapVideosForGoal(
 
   // 2. Resolve 5 Distinct Milestone Videos (Matching stages: 0=foundation, 1=core, 2=deep_dive, 3=project, 4=advanced)
   const milestoneVideos: YouTubeCourseMatch[] = milestones.map((m, idx) => {
-    // If AI provided a verified specific 11-char videoId that hasn't been used, use it!
-    const aiId = m.suggestedVideo?.videoId;
-    if (aiId && aiId.length === 11 && !usedVideoIds.has(aiId)) {
-      usedVideoIds.add(aiId);
+    // Check if AI provided a direct, verified 11-char videoId or URL
+    const rawAiId = m.suggestedVideo?.videoId || m.suggestedVideo?.youtubeId || extractYouTubeId(m.suggestedVideo?.url || '');
+    if (rawAiId && rawAiId.length === 11 && !usedVideoIds.has(rawAiId)) {
+      usedVideoIds.add(rawAiId);
       return {
-        videoId: aiId,
+        videoId: rawAiId,
         title: m.suggestedVideo.title || `${m.title} - Video Masterclass`,
-        channel: m.suggestedVideo.channel || 'Educational Masterclass',
+        channel: m.suggestedVideo.channel || 'Premier YouTube Educator',
         duration: m.suggestedVideo.duration || '2h 15m',
-        url: `https://www.youtube.com/watch?v=${aiId}`,
-        thumbnailUrl: `https://img.youtube.com/vi/${aiId}/hqdefault.jpg`,
-        description: `Curated video tutorial specifically chosen for ${m.title}.`
+        url: `https://www.youtube.com/watch?v=${rawAiId}`,
+        thumbnailUrl: `https://img.youtube.com/vi/${rawAiId}/hqdefault.jpg`,
+        description: m.suggestedVideo.whySelected || `Curated video tutorial specifically chosen by AI for ${m.title}.`
       };
     }
 
-    // Try domain match for this specific milestone index/stage
-    let candidate = domainCourseList[idx % domainCourseList.length];
-    if (usedVideoIds.has(candidate.videoId)) {
-      // Find any unused video from domain course list
-      const unusedDomain = domainCourseList.find(c => !usedVideoIds.has(c.videoId));
-      if (unusedDomain) {
-        candidate = unusedDomain;
-      } else {
-        // Find unused from general list
-        const unusedGeneral = generalList.find(c => !usedVideoIds.has(c.videoId));
-        if (unusedGeneral) candidate = unusedGeneral;
+    // Try matching specific AI suggestion query or title first if videoId wasn't direct
+    const aiQuery = m.suggestedVideo?.searchQuery || m.suggestedVideo?.title || m.title;
+    let candidate: YouTubeCourseMatch | undefined;
+    if (aiQuery) {
+      const match = resolveBestVideoCourse(aiQuery);
+      if (match && !usedVideoIds.has(match.videoId)) {
+        candidate = match;
+      }
+    }
+
+    if (!candidate) {
+      // Try domain match for this specific milestone index/stage
+      candidate = domainCourseList[idx % domainCourseList.length];
+      if (usedVideoIds.has(candidate.videoId)) {
+        // Find any unused video from domain course list
+        const unusedDomain = domainCourseList.find(c => !usedVideoIds.has(c.videoId));
+        if (unusedDomain) {
+          candidate = unusedDomain;
+        } else {
+          // Find unused from general list
+          const unusedGeneral = generalList.find(c => !usedVideoIds.has(c.videoId));
+          if (unusedGeneral) candidate = unusedGeneral;
+        }
       }
     }
 
     usedVideoIds.add(candidate.videoId);
 
-    // Personalize title if AI provided a rich title
-    const effectiveTitle = m.suggestedVideo?.title || `${m.title} - ${candidate.channel}`;
+    // Personalize title if AI provided a rich title or channel
+    const effectiveTitle = m.suggestedVideo?.title || candidate.title || `${m.title} - ${candidate.channel}`;
     const effectiveChannel = m.suggestedVideo?.channel || candidate.channel;
     const effectiveDuration = m.suggestedVideo?.duration || candidate.duration;
 
@@ -625,7 +637,7 @@ export function resolveRoadmapVideosForGoal(
       duration: effectiveDuration,
       url: candidate.url,
       thumbnailUrl: candidate.thumbnailUrl,
-      description: `Curated video lecture for ${m.title} covering key invariants and practice.`
+      description: m.suggestedVideo?.whySelected || `Curated video lecture for ${m.title} covering key invariants and practice.`
     };
   });
 
